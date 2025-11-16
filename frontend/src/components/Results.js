@@ -305,6 +305,182 @@ const Results = ({ results }) => {
                         </Card>
                     </Tab>
                 )}
+
+                {/* ROC Curve */}
+                {results.roc_auc && (
+                    <Tab eventKey="roc" title="ROC Curve">
+                        <Card className="mt-3">
+                            <Card.Header>ROC Curve (AUC = {results.roc_auc.auc.toFixed(3)})</Card.Header>
+                            <Card.Body>
+                                <Plot
+                                    data={[
+                                        {
+                                            x: results.roc_auc.fpr,
+                                            y: results.roc_auc.tpr,
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: `ROC Curve (AUC = ${results.roc_auc.auc.toFixed(3)})`,
+                                            line: { color: '#1f77b4', width: 2 }
+                                        },
+                                        {
+                                            x: [0, 1],
+                                            y: [0, 1],
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: 'Random Classifier',
+                                            line: { color: 'red', dash: 'dash' }
+                                        }
+                                    ]}
+                                    layout={{
+                                        title: 'Receiver Operating Characteristic (ROC) Curve',
+                                        xaxis: { title: 'False Positive Rate' },
+                                        yaxis: { title: 'True Positive Rate' },
+                                        width: 700,
+                                        height: 500
+                                    }}
+                                />
+                            </Card.Body>
+                        </Card>
+                    </Tab>
+                )}
+
+                {/* Precision-Recall Curve */}
+                {results.pr_curve && (
+                    <Tab eventKey="pr" title="PR Curve">
+                        <Card className="mt-3">
+                            <Card.Header>Precision-Recall Curve (AP = {results.pr_curve.average_precision.toFixed(3)})</Card.Header>
+                            <Card.Body>
+                                <Plot
+                                    data={[
+                                        {
+                                            x: results.pr_curve.recall,
+                                            y: results.pr_curve.precision,
+                                            type: 'scatter',
+                                            mode: 'lines',
+                                            name: `PR Curve (AP = ${results.pr_curve.average_precision.toFixed(3)})`,
+                                            line: { color: '#2ca02c', width: 2 }
+                                        }
+                                    ]}
+                                    layout={{
+                                        title: 'Precision-Recall Curve',
+                                        xaxis: { title: 'Recall' },
+                                        yaxis: { title: 'Precision' },
+                                        width: 700,
+                                        height: 500
+                                    }}
+                                />
+                            </Card.Body>
+                        </Card>
+                    </Tab>
+                )}
+
+                {/* Feature Importance */}
+                {results.feature_importance && (
+                    <Tab eventKey="importance" title="Feature Importance">
+                        <Card className="mt-3">
+                            <Card.Header>Feature Importance</Card.Header>
+                            <Card.Body>
+                                <Plot
+                                    data={[
+                                        {
+                                            x: Object.values(results.feature_importance),
+                                            y: Object.keys(results.feature_importance),
+                                            type: 'bar',
+                                            orientation: 'h',
+                                            marker: { color: '#ff7f0e' }
+                                        }
+                                    ]}
+                                    layout={{
+                                        title: 'Feature Importance Scores',
+                                        xaxis: { title: 'Importance' },
+                                        yaxis: { title: 'Feature' },
+                                        width: 700,
+                                        height: Math.max(400, Object.keys(results.feature_importance).length * 30)
+                                    }}
+                                />
+                            </Card.Body>
+                        </Card>
+                    </Tab>
+                )}
+
+                {/* Cross-Validation Results */}
+                {results.cross_validation && (
+                    <Tab eventKey="cv" title="Cross-Validation">
+                        <Card className="mt-3">
+                            <Card.Header>
+                                {results.cross_validation.n_splits}-Fold Cross-Validation Results
+                                {results.cross_validation.stratified && ' (Stratified)'}
+                            </Card.Header>
+                            <Card.Body>
+                                <Table striped bordered>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Average Train Accuracy</strong></td>
+                                            <td>{(results.cross_validation.avg_train_accuracy * 100).toFixed(2)}% ± {(results.cross_validation.std_train_accuracy * 100).toFixed(2)}%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Average Test Accuracy</strong></td>
+                                            <td>{(results.cross_validation.avg_test_accuracy * 100).toFixed(2)}% ± {(results.cross_validation.std_test_accuracy * 100).toFixed(2)}%</td>
+                                        </tr>
+                                    </tbody>
+                                </Table>
+
+                                <h5 className="mt-4">Fold-by-Fold Results</h5>
+                                <Table striped bordered hover>
+                                    <thead>
+                                        <tr>
+                                            <th>Fold</th>
+                                            <th>Train Size</th>
+                                            <th>Test Size</th>
+                                            <th>Train Accuracy</th>
+                                            <th>Test Accuracy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {results.cross_validation.fold_results.map((fold, idx) => (
+                                            <tr key={idx}>
+                                                <td>{fold.fold}</td>
+                                                <td>{fold.train_size}</td>
+                                                <td>{fold.test_size}</td>
+                                                <td>{(fold.train_accuracy * 100).toFixed(2)}%</td>
+                                                <td>{(fold.test_accuracy * 100).toFixed(2)}%</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+
+                                {/* CV Accuracy Plot */}
+                                <Plot
+                                    data={[
+                                        {
+                                            x: results.cross_validation.fold_results.map(f => `Fold ${f.fold}`),
+                                            y: results.cross_validation.fold_results.map(f => f.train_accuracy * 100),
+                                            type: 'scatter',
+                                            mode: 'lines+markers',
+                                            name: 'Train Accuracy',
+                                            line: { color: '#1f77b4' }
+                                        },
+                                        {
+                                            x: results.cross_validation.fold_results.map(f => `Fold ${f.fold}`),
+                                            y: results.cross_validation.fold_results.map(f => f.test_accuracy * 100),
+                                            type: 'scatter',
+                                            mode: 'lines+markers',
+                                            name: 'Test Accuracy',
+                                            line: { color: '#ff7f0e' }
+                                        }
+                                    ]}
+                                    layout={{
+                                        title: 'Accuracy Across Folds',
+                                        xaxis: { title: 'Fold' },
+                                        yaxis: { title: 'Accuracy (%)' },
+                                        width: 700,
+                                        height: 400
+                                    }}
+                                />
+                            </Card.Body>
+                        </Card>
+                    </Tab>
+                )}
             </Tabs>
         </div>
     );
