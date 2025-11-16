@@ -8,10 +8,15 @@ class C45:
         self.max_depth = max_depth
         self.tree = None
         self.label_encoder = None
+        self.feature_importances_ = None
 
     def fit(self, X, y):
         if len(X) == 0 or len(y) == 0:
             raise ValueError("Cannot fit model with empty dataset")
+        
+        # Initialize feature importances
+        self.feature_importances_ = {col: 0.0 for col in X.columns}
+        self.n_samples = len(X)
         
         # Encode labels to numeric if they're strings
         if y.dtype == 'object' or isinstance(y.iloc[0] if hasattr(y, 'iloc') else y[0], str):
@@ -25,6 +30,11 @@ class C45:
         if len(np.unique(y_encoded)) == 0:
             raise ValueError("No classes found in target variable")
         self.tree = self._build_tree(X, y_encoded, depth=0)
+        
+        # Normalize feature importances
+        total_importance = sum(self.feature_importances_.values())
+        if total_importance > 0:
+            self.feature_importances_ = {k: v / total_importance for k, v in self.feature_importances_.items()}
 
     def predict(self, X):
         predictions = np.array([self._predict_tree(x, self.tree) for _, x in X.iterrows()])
@@ -109,6 +119,7 @@ class C45:
     def _find_best_split(self, X, y):
         best_gain_ratio = -1
         best_feature, best_thresh = None, None
+        best_gain = 0
 
         for feature in X.columns:
             thresholds = X[feature].unique()
@@ -118,6 +129,12 @@ class C45:
                     best_gain_ratio = gain_ratio
                     best_feature = feature
                     best_thresh = thresh
+                    best_gain = self._information_gain(y, X[feature], thresh)
+        
+        # Update feature importance
+        if best_feature is not None:
+            # Weight by number of samples
+            self.feature_importances_[best_feature] += best_gain * (len(y) / self.n_samples)
         
         return best_feature, best_thresh
 

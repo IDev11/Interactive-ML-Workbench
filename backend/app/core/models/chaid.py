@@ -11,6 +11,7 @@ class CHAID:
         self.min_child_node_size = min_child_node_size  # Minimum samples in child node
         self.tree = None
         self.feature_categories = {}  # Store categories for each feature
+        self.feature_importances_ = None  # Feature importances
 
     def fit(self, X, y):
         if len(X) == 0 or len(y) == 0:
@@ -18,12 +19,21 @@ class CHAID:
         if len(y.unique()) == 0:
             raise ValueError("No classes found in target variable")
         
+        # Initialize feature importances
+        self.feature_importances_ = {col: 0.0 for col in X.columns}
+        self.n_samples = len(X)
+        
         # Store categories for each categorical feature
         for col in X.columns:
             if not pd.api.types.is_numeric_dtype(X[col]):
                 self.feature_categories[col] = X[col].unique().tolist()
         
         self.tree = self._build_tree(X, y, depth=0)
+        
+        # Normalize feature importances
+        total_importance = sum(self.feature_importances_.values())
+        if total_importance > 0:
+            self.feature_importances_ = {k: v / total_importance for k, v in self.feature_importances_.items()}
 
     def predict(self, X):
         predictions = []
@@ -189,6 +199,7 @@ class CHAID:
         lowest_p = 1.0
         best_is_numeric = False
         best_bin_edges = None
+        best_chi_stat = 0.0
 
         for feature in X.columns:
             if pd.api.types.is_numeric_dtype(X[feature]):
@@ -196,7 +207,7 @@ class CHAID:
                 binned, bin_edges = self._discretize_numerical(X, feature, y)
                 
                 # Test if split is significant
-                p_value, _ = self._chi_square_test(binned, y)
+                p_value, chi_stat = self._chi_square_test(binned, y)
                 
                 if p_value < lowest_p:
                     lowest_p = p_value
@@ -204,6 +215,7 @@ class CHAID:
                     best_mapping = binned.to_dict()
                     best_is_numeric = True
                     best_bin_edges = bin_edges
+                    best_chi_stat = chi_stat
             else:
                 # Categorical feature - merge similar categories
                 category_map = self._merge_categories(X, feature, y)
@@ -212,7 +224,7 @@ class CHAID:
                 mapped_feature = X[feature].map(category_map)
                 
                 # Test if split is significant
-                p_value, _ = self._chi_square_test(mapped_feature, y)
+                p_value, chi_stat = self._chi_square_test(mapped_feature, y)
                 
                 if p_value < lowest_p:
                     lowest_p = p_value
@@ -220,6 +232,12 @@ class CHAID:
                     best_mapping = category_map
                     best_is_numeric = False
                     best_bin_edges = None
+                    best_chi_stat = chi_stat
+        
+        # Update feature importance based on chi-square statistic
+        if best_feature is not None:
+            # Weight by number of samples
+            self.feature_importances_[best_feature] += best_chi_stat * (len(y) / self.n_samples)
         
         # Only return split if it's statistically significant
         if lowest_p < self.alpha and best_feature is not None:

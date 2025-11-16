@@ -301,6 +301,58 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                  );
             case 'shuffle':
                 return <p className="mt-2">This will randomly shuffle the entire dataset.</p>;
+            case 'remove_outliers':
+                return (
+                    <>
+                        {!selectedColumn && (
+                            <Form.Select onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, column: e.target.value } })} className="mt-2">
+                                <option>Select Column</option>
+                                {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
+                            </Form.Select>
+                        )}
+                        <Form.Select 
+                            value={currentStep.params.method || ''}
+                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
+                            className="mt-2"
+                        >
+                            <option value="">Select Method</option>
+                            <option value="iqr">IQR Method</option>
+                            <option value="z_score">Z-Score Method</option>
+                            <option value="percentile">Percentile Method</option>
+                        </Form.Select>
+                        {currentStep.params.method === 'z_score' && (
+                            <Form.Control
+                                type="number"
+                                placeholder="Z-score threshold (default: 3)"
+                                className="mt-2"
+                                value={currentStep.params.threshold || 3}
+                                onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, threshold: parseFloat(e.target.value) } })}
+                            />
+                        )}
+                    </>
+                );
+            case 'transform_feature':
+                return (
+                    <>
+                        {!selectedColumn && (
+                            <Form.Select onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, column: e.target.value } })} className="mt-2">
+                                <option>Select Column</option>
+                                {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
+                            </Form.Select>
+                        )}
+                        <Form.Select 
+                            value={currentStep.params.method || ''}
+                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
+                            className="mt-2"
+                        >
+                            <option value="">Select Transformation</option>
+                            <option value="log">Log Transform</option>
+                            <option value="sqrt">Square Root</option>
+                            <option value="square">Square</option>
+                            <option value="reciprocal">Reciprocal (1/x)</option>
+                        </Form.Select>
+                    </>
+                );
             default:
                 return null;
         }
@@ -483,6 +535,8 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                             <option value="encode_categorical">Encode Categorical</option>
                             <option value="discretize_numerical">Discretize Numerical</option>
                             <option value="scale_numerical">Scale Numerical</option>
+                            <option value="remove_outliers">Remove Outliers</option>
+                            <option value="transform_feature">Transform Feature</option>
                             <option value="rename_column">Rename Column</option>
                             <option value="drop_columns">Drop Columns</option>
                             <option value="shuffle">Shuffle Dataset</option>
