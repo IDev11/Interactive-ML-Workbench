@@ -1,0 +1,25 @@
+* {
+    box-sizing: border-box;
+}
+
+.sidebar {
+    background-color: #f8f9fa;
+    padding: 20px;
+    height: 100vh;
+    position: fixed;
+}
+
+.main-content {
+    margin-left: 16.666667%; /* Corresponds to col-md-2 */
+    padding: 20px;
+}
+
+.sidebar .nav-link {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.sidebar .nav-link.disabled {
+    color: #aaa;
+    pointer-events: none;
+}

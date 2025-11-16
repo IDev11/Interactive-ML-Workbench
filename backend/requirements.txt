@@ -1,0 +1,7 @@
+fastapi
+pandas
+numpy
+scipy
+python-multipart
+uvicorn
+liac-arff
