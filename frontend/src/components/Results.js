@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
-import { Card, Table, Tabs, Tab, Badge } from 'react-bootstrap';
+import { Card, Table, Tabs, Tab, Badge, Row, Col } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChartLine, faBullseye, faChartBar, faFlask, faGraduationCap, faTree, faCog, faExclamationTriangle, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import Plot from 'react-plotly.js';
 
 const Results = ({ results }) => {
     const [activeTab, setActiveTab] = useState('overview');
 
-    if (!results) return <p>Train a model to see results.</p>;
+    if (!results) return (
+        <div>
+            <h2><FontAwesomeIcon icon={faChartLine} className="me-2" />Model Results</h2>
+            <Card>
+                <Card.Body className="text-center py-5">
+                    <FontAwesomeIcon icon={faChartLine} size="4x" style={{ opacity: 0.3 }} />
+                    <p className="text-muted mt-3 mb-0">Train a model to see results here.</p>
+                </Card.Body>
+            </Card>
+        </div>
+    );
 
     const { test_metrics, train_metrics, model_type, model_info } = results;
     
     if (!test_metrics) {
-        return <p>No metrics available. Please train the model again.</p>;
+        return (
+            <div>
+                <h2><FontAwesomeIcon icon={faChartLine} className="me-2" />Model Results</h2>
+                <Card>
+                    <Card.Body className="text-center py-4">
+                        <p className="text-warning mb-0"><FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />No metrics available. Please train the model again.</p>
+                    </Card.Body>
+                </Card>
+            </div>
+        );
     }
 
     const renderMetricsTable = (metrics, title) => {
@@ -22,17 +43,57 @@ const Results = ({ results }) => {
                 
                 {/* Overall Metrics */}
                 <Card className="mt-3">
-                    <Card.Header>Overall Metrics</Card.Header>
+                    <Card.Header className="d-flex justify-content-between align-items-center">
+                        <span><FontAwesomeIcon icon={faBullseye} className="me-2" />Overall Performance</span>
+                        <Badge bg={accuracy > 0.9 ? 'success' : accuracy > 0.7 ? 'warning' : 'danger'}>
+                            {(accuracy * 100).toFixed(2)}% Accuracy
+                        </Badge>
+                    </Card.Header>
                     <Card.Body>
+                        <Row>
+                            <Col md={6}>
+                                <div className="metric-card p-3 mb-3" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', borderRadius: '8px' }}>
+                                    <div className="text-center">
+                                        <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{(accuracy * 100).toFixed(2)}%</div>
+                                        <div>Accuracy</div>
+                                    </div>
+                                </div>
+                            </Col>
+                            <Col md={6}>
+                                <div className="metric-card p-3 mb-3" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', borderRadius: '8px' }}>
+                                    <div className="text-center">
+                                        <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{(weighted_avg.f1_score * 100).toFixed(2)}%</div>
+                                        <div>F1-Score</div>
+                                    </div>
+                                </div>
+                            </Col>
+                        </Row>
                         <Table striped bordered>
                             <tbody>
-                                <tr><td><strong>Accuracy</strong></td><td>{(accuracy * 100).toFixed(2)}%</td></tr>
-                                <tr><td><strong>Macro Avg Precision</strong></td><td>{(macro_avg.precision * 100).toFixed(2)}%</td></tr>
-                                <tr><td><strong>Macro Avg Recall</strong></td><td>{(macro_avg.recall * 100).toFixed(2)}%</td></tr>
-                                <tr><td><strong>Macro Avg F1-Score</strong></td><td>{(macro_avg.f1_score * 100).toFixed(2)}%</td></tr>
-                                <tr><td><strong>Weighted Avg Precision</strong></td><td>{(weighted_avg.precision * 100).toFixed(2)}%</td></tr>
-                                <tr><td><strong>Weighted Avg Recall</strong></td><td>{(weighted_avg.recall * 100).toFixed(2)}%</td></tr>
-                                <tr><td><strong>Weighted Avg F1-Score</strong></td><td>{(weighted_avg.f1_score * 100).toFixed(2)}%</td></tr>
+                                <tr>
+                                    <td><strong>Macro Avg Precision</strong></td>
+                                    <td>
+                                        <Badge bg="info">{(macro_avg.precision * 100).toFixed(2)}%</Badge>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Macro Avg Recall</strong></td>
+                                    <td>
+                                        <Badge bg="info">{(macro_avg.recall * 100).toFixed(2)}%</Badge>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Weighted Avg Precision</strong></td>
+                                    <td>
+                                        <Badge bg="primary">{(weighted_avg.precision * 100).toFixed(2)}%</Badge>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Weighted Avg Recall</strong></td>
+                                    <td>
+                                        <Badge bg="primary">{(weighted_avg.recall * 100).toFixed(2)}%</Badge>
+                                    </td>
+                                </tr>
                             </tbody>
                         </Table>
                     </Card.Body>
@@ -40,9 +101,9 @@ const Results = ({ results }) => {
 
                 {/* Per-Class Metrics */}
                 <Card className="mt-3">
-                    <Card.Header>Per-Class Metrics</Card.Header>
+                    <Card.Header><FontAwesomeIcon icon={faChartBar} className="me-2" />Per-Class Metrics</Card.Header>
                     <Card.Body>
-                        <Table striped bordered hover>
+                        <Table striped bordered hover responsive>
                             <thead>
                                 <tr>
                                     <th>Class</th>
@@ -60,10 +121,10 @@ const Results = ({ results }) => {
                                 {Object.entries(per_class).map(([className, classMetrics]) => (
                                     <tr key={className}>
                                         <td><Badge bg="primary">{className}</Badge></td>
-                                        <td>{classMetrics.tp}</td>
-                                        <td>{classMetrics.tn}</td>
-                                        <td>{classMetrics.fp}</td>
-                                        <td>{classMetrics.fn}</td>
+                                        <td><Badge bg="success">{classMetrics.tp}</Badge></td>
+                                        <td><Badge bg="success">{classMetrics.tn}</Badge></td>
+                                        <td><Badge bg="danger">{classMetrics.fp}</Badge></td>
+                                        <td><Badge bg="danger">{classMetrics.fn}</Badge></td>
                                         <td>{(classMetrics.precision * 100).toFixed(2)}%</td>
                                         <td>{(classMetrics.recall * 100).toFixed(2)}%</td>
                                         <td>{(classMetrics.f1_score * 100).toFixed(2)}%</td>
@@ -130,10 +191,29 @@ const Results = ({ results }) => {
 
     return (
         <div>
-            <h2>Results - {model_type.toUpperCase().replace('_', ' ')}</h2>
+            <h2><FontAwesomeIcon icon={faChartLine} className="me-2" />Model Results</h2>
+            <Card className="mb-3" style={{ background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)' }}>
+                <Card.Body>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 className="mb-1">
+                                {model_type === 'naive_bayes' ? <><FontAwesomeIcon icon={faChartBar} className="me-2" />Naive Bayes</> : 
+                                 model_type === 'c45' ? <><FontAwesomeIcon icon={faTree} className="me-2" />C4.5 Decision Tree</> : 
+                                 model_type === 'chaid' ? <><FontAwesomeIcon icon={faTree} className="me-2" />CHAID Decision Tree</> : model_type}
+                            </h4>
+                            <p className="text-muted mb-0">From-scratch implementation</p>
+                        </div>
+                        <div className="text-end">
+                            <Badge bg="success" className="me-2" style={{ fontSize: '1.2rem' }}>
+                                <FontAwesomeIcon icon={faCheckCircle} className="me-2" />Trained
+                            </Badge>
+                        </div>
+                    </div>
+                </Card.Body>
+            </Card>
             
-            <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mt-3">
-                <Tab eventKey="overview" title="Overview">
+            <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3">
+                <Tab eventKey="overview" title={<><FontAwesomeIcon icon={faChartBar} className="me-2" />Overview</>}>
                     <Card className="mt-3">
                         <Card.Header>Model Summary</Card.Header>
                         <Card.Body>
@@ -272,20 +352,20 @@ const Results = ({ results }) => {
                     </Card>
                 </Tab>
 
-                <Tab eventKey="test" title="Test Set Results">
+                <Tab eventKey="test" title={<><FontAwesomeIcon icon={faFlask} className="me-2" />Test Set</>}>
                     {renderMetricsTable(test_metrics, 'Test Set Performance')}
                 </Tab>
 
-                <Tab eventKey="train" title="Train Set Results">
+                <Tab eventKey="train" title={<><FontAwesomeIcon icon={faGraduationCap} className="me-2" />Train Set</>}>
                     {renderMetricsTable(train_metrics, 'Training Set Performance')}
                 </Tab>
 
                 {model_info && model_info.tree_structure && (
-                    <Tab eventKey="tree" title="Decision Tree">
+                    <Tab eventKey="tree" title={<><FontAwesomeIcon icon={faTree} className="me-2" />Decision Tree</>}>
                         <Card className="mt-3">
                             <Card.Header>Tree Structure</Card.Header>
                             <Card.Body>
-                                <pre style={{ maxHeight: '600px', overflow: 'auto' }}>
+                                <pre style={{ maxHeight: '600px', overflow: 'auto', background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
                                     {JSON.stringify(model_info.tree_structure, null, 2)}
                                 </pre>
                             </Card.Body>
@@ -294,189 +374,13 @@ const Results = ({ results }) => {
                 )}
 
                 {model_info && (model_info.priors || model_info.likelihoods) && (
-                    <Tab eventKey="model" title="Model Details">
+                    <Tab eventKey="model" title={<><FontAwesomeIcon icon={faCog} className="me-2" />Model Details</>}>
                         <Card className="mt-3">
                             <Card.Header>Model Parameters</Card.Header>
                             <Card.Body>
-                                <pre style={{ maxHeight: '600px', overflow: 'auto' }}>
+                                <pre style={{ maxHeight: '600px', overflow: 'auto', background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>
                                     {JSON.stringify(model_info, null, 2)}
                                 </pre>
-                            </Card.Body>
-                        </Card>
-                    </Tab>
-                )}
-
-                {/* ROC Curve */}
-                {results.roc_auc && (
-                    <Tab eventKey="roc" title="ROC Curve">
-                        <Card className="mt-3">
-                            <Card.Header>ROC Curve (AUC = {results.roc_auc.auc.toFixed(3)})</Card.Header>
-                            <Card.Body>
-                                <Plot
-                                    data={[
-                                        {
-                                            x: results.roc_auc.fpr,
-                                            y: results.roc_auc.tpr,
-                                            type: 'scatter',
-                                            mode: 'lines',
-                                            name: `ROC Curve (AUC = ${results.roc_auc.auc.toFixed(3)})`,
-                                            line: { color: '#1f77b4', width: 2 }
-                                        },
-                                        {
-                                            x: [0, 1],
-                                            y: [0, 1],
-                                            type: 'scatter',
-                                            mode: 'lines',
-                                            name: 'Random Classifier',
-                                            line: { color: 'red', dash: 'dash' }
-                                        }
-                                    ]}
-                                    layout={{
-                                        title: 'Receiver Operating Characteristic (ROC) Curve',
-                                        xaxis: { title: 'False Positive Rate' },
-                                        yaxis: { title: 'True Positive Rate' },
-                                        width: 700,
-                                        height: 500
-                                    }}
-                                />
-                            </Card.Body>
-                        </Card>
-                    </Tab>
-                )}
-
-                {/* Precision-Recall Curve */}
-                {results.pr_curve && (
-                    <Tab eventKey="pr" title="PR Curve">
-                        <Card className="mt-3">
-                            <Card.Header>Precision-Recall Curve (AP = {results.pr_curve.average_precision.toFixed(3)})</Card.Header>
-                            <Card.Body>
-                                <Plot
-                                    data={[
-                                        {
-                                            x: results.pr_curve.recall,
-                                            y: results.pr_curve.precision,
-                                            type: 'scatter',
-                                            mode: 'lines',
-                                            name: `PR Curve (AP = ${results.pr_curve.average_precision.toFixed(3)})`,
-                                            line: { color: '#2ca02c', width: 2 }
-                                        }
-                                    ]}
-                                    layout={{
-                                        title: 'Precision-Recall Curve',
-                                        xaxis: { title: 'Recall' },
-                                        yaxis: { title: 'Precision' },
-                                        width: 700,
-                                        height: 500
-                                    }}
-                                />
-                            </Card.Body>
-                        </Card>
-                    </Tab>
-                )}
-
-                {/* Feature Importance */}
-                {results.feature_importance && (
-                    <Tab eventKey="importance" title="Feature Importance">
-                        <Card className="mt-3">
-                            <Card.Header>Feature Importance</Card.Header>
-                            <Card.Body>
-                                <Plot
-                                    data={[
-                                        {
-                                            x: Object.values(results.feature_importance),
-                                            y: Object.keys(results.feature_importance),
-                                            type: 'bar',
-                                            orientation: 'h',
-                                            marker: { color: '#ff7f0e' }
-                                        }
-                                    ]}
-                                    layout={{
-                                        title: 'Feature Importance Scores',
-                                        xaxis: { title: 'Importance' },
-                                        yaxis: { title: 'Feature' },
-                                        width: 700,
-                                        height: Math.max(400, Object.keys(results.feature_importance).length * 30)
-                                    }}
-                                />
-                            </Card.Body>
-                        </Card>
-                    </Tab>
-                )}
-
-                {/* Cross-Validation Results */}
-                {results.cross_validation && (
-                    <Tab eventKey="cv" title="Cross-Validation">
-                        <Card className="mt-3">
-                            <Card.Header>
-                                {results.cross_validation.n_splits}-Fold Cross-Validation Results
-                                {results.cross_validation.stratified && ' (Stratified)'}
-                            </Card.Header>
-                            <Card.Body>
-                                <Table striped bordered>
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>Average Train Accuracy</strong></td>
-                                            <td>{(results.cross_validation.avg_train_accuracy * 100).toFixed(2)}% ± {(results.cross_validation.std_train_accuracy * 100).toFixed(2)}%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Average Test Accuracy</strong></td>
-                                            <td>{(results.cross_validation.avg_test_accuracy * 100).toFixed(2)}% ± {(results.cross_validation.std_test_accuracy * 100).toFixed(2)}%</td>
-                                        </tr>
-                                    </tbody>
-                                </Table>
-
-                                <h5 className="mt-4">Fold-by-Fold Results</h5>
-                                <Table striped bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>Fold</th>
-                                            <th>Train Size</th>
-                                            <th>Test Size</th>
-                                            <th>Train Accuracy</th>
-                                            <th>Test Accuracy</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {results.cross_validation.fold_results.map((fold, idx) => (
-                                            <tr key={idx}>
-                                                <td>{fold.fold}</td>
-                                                <td>{fold.train_size}</td>
-                                                <td>{fold.test_size}</td>
-                                                <td>{(fold.train_accuracy * 100).toFixed(2)}%</td>
-                                                <td>{(fold.test_accuracy * 100).toFixed(2)}%</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-
-                                {/* CV Accuracy Plot */}
-                                <Plot
-                                    data={[
-                                        {
-                                            x: results.cross_validation.fold_results.map(f => `Fold ${f.fold}`),
-                                            y: results.cross_validation.fold_results.map(f => f.train_accuracy * 100),
-                                            type: 'scatter',
-                                            mode: 'lines+markers',
-                                            name: 'Train Accuracy',
-                                            line: { color: '#1f77b4' }
-                                        },
-                                        {
-                                            x: results.cross_validation.fold_results.map(f => `Fold ${f.fold}`),
-                                            y: results.cross_validation.fold_results.map(f => f.test_accuracy * 100),
-                                            type: 'scatter',
-                                            mode: 'lines+markers',
-                                            name: 'Test Accuracy',
-                                            line: { color: '#ff7f0e' }
-                                        }
-                                    ]}
-                                    layout={{
-                                        title: 'Accuracy Across Folds',
-                                        xaxis: { title: 'Fold' },
-                                        yaxis: { title: 'Accuracy (%)' },
-                                        width: 700,
-                                        height: 400
-                                    }}
-                                />
                             </Card.Body>
                         </Card>
                     </Tab>

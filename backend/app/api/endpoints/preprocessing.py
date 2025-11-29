@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from app.core.preprocessing import (
     handle_missing_values,
+    replace_zeros_with_nan,
     encode_categorical,
     discretize_numerical,
     scale_numerical,
@@ -11,10 +12,7 @@ from app.core.preprocessing import (
     drop_columns,
     apply_expression,
     shuffle_dataset,
-    split_data,
-    remove_outliers,
-    transform_feature,
-    smote_oversample
+    split_data
 )
 
 router = APIRouter()
@@ -45,7 +43,10 @@ async def apply_preprocessing(data: Dict[str, Any] = Body(...)):
             op = step['operation']
             params = step['params']
             
-            if op == 'handle_missing':
+            if op == 'replace_zeros':
+                df = replace_zeros_with_nan(df, params['column'])
+                log.append(f"Replaced zeros with missing values in '{params['column']}'.")
+            elif op == 'handle_missing':
                 df = handle_missing_values(df, params['column'], params['strategy'], params.get('value'))
                 log.append(f"Handled missing values in '{params['column']}' using {params['strategy']}.")
             elif op == 'encode_categorical':
@@ -69,22 +70,6 @@ async def apply_preprocessing(data: Dict[str, Any] = Body(...)):
             elif op == 'shuffle':
                 df = shuffle_dataset(df)
                 log.append("Dataset shuffled.")
-            elif op == 'remove_outliers':
-                df = remove_outliers(df, params['column'], params['method'], params.get('threshold'))
-                log.append(f"Removed outliers from '{params['column']}' using {params['method']}.")
-            elif op == 'transform_feature':
-                df = transform_feature(df, params['column'], params['method'])
-                log.append(f"Transformed '{params['column']}' using {params['method']}.")
-            elif op == 'smote':
-                target = params.get('target')
-                if target and target in df.columns:
-                    X = df.drop(columns=[target])
-                    y = df[target]
-                    X_balanced, y_balanced = smote_oversample(X, y, k_neighbors=params.get('k_neighbors', 5))
-                    df = pd.concat([X_balanced, y_balanced.to_frame(name=target)], axis=1)
-                    log.append(f"Applied SMOTE to balance classes.")
-                else:
-                    log.append(f"SMOTE skipped: target column not specified or not found.")
         
         # Clean NaN and Inf values before returning
         df_clean = df.replace([np.inf, -np.inf], np.nan).where(pd.notna(df), None)

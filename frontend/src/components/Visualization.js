@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Form, Row, Col, Button } from 'react-bootstrap';
+import { Card, Form, Row, Col, Button, Badge } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChartBar, faPalette, faChartLine, faChartColumn, faBoxOpen, faChartPie, faChartScatter, faFire, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Plot from 'react-plotly.js';
 
 function ResizablePlot({ plot, onResize, onDelete }) {
@@ -77,18 +79,23 @@ function ResizablePlot({ plot, onResize, onDelete }) {
                 minHeight: '150px'
             }}
         >
-            <Card style={{ width: '100%', height: '100%' }}>
+            <Card style={{ width: '100%', height: '100%' }} className="viz-card">
                 <Card.Header className="d-flex justify-content-between align-items-center py-2">
-                    <small className="text-truncate">
-                        <strong>{plot.type.charAt(0).toUpperCase() + plot.type.slice(1)}</strong>
-                        {plot.column && ` - ${plot.column}`}
-                        {plot.columns && plot.columns.length > 0 && ` - ${plot.columns.join(' vs ')}`}
-                    </small>
+                    <div className="text-truncate">
+                        <Badge bg="info" className="me-2">
+                            {plot.type.charAt(0).toUpperCase() + plot.type.slice(1)}
+                        </Badge>
+                        <small>
+                            {plot.column && plot.column}
+                            {plot.columns && plot.columns.length > 0 && plot.columns.join(' vs ')}
+                        </small>
+                    </div>
                     <Button 
-                        variant="outline-danger" 
-                        size="sm"
+                        variant="link" 
+                        className="text-danger p-0"
                         onClick={() => onDelete(plot.id)}
-                        style={{ padding: '0.1rem 0.4rem', fontSize: '1.2rem', lineHeight: 1 }}
+                        style={{ fontSize: '1.5rem', lineHeight: 1, textDecoration: 'none' }}
+                        title="Remove chart"
                     >
                         ×
                     </Button>
@@ -118,7 +125,7 @@ function ResizablePlot({ plot, onResize, onDelete }) {
                 onMouseDown={(e) => handleMouseDown(e, 's')}
             />
             <div 
-                style={{ ...resizeHandleStyle, right: 0, bottom: 0, width: '12px', height: '12px', cursor: 'nwse-resize' }}
+                style={{ ...resizeHandleStyle, right: 0, bottom: 0, width: '12px', height: '12px', cursor: 'nwse-resize', background: 'rgba(102, 126, 234, 0.2)' }}
                 onMouseDown={(e) => handleMouseDown(e, 'se')}
             />
         </div>
@@ -152,8 +159,13 @@ function Visualization({ processedData }) {
     if (!processedData || !processedData.processed_dataset) {
         return (
             <div>
-                <h2>Data Visualization</h2>
-                <p className="text-muted">Please upload and preprocess a dataset first.</p>
+                <h2><FontAwesomeIcon icon={faChartBar} className="me-2" />Data Visualization</h2>
+                <Card>
+                    <Card.Body className="text-center py-5">
+                        <FontAwesomeIcon icon={faChartBar} size="4x" style={{ opacity: 0.3 }} />
+                        <p className="text-muted mt-3 mb-0">Please upload and preprocess a dataset first.</p>
+                    </Card.Body>
+                </Card>
             </div>
         );
     }
@@ -464,15 +476,18 @@ function Visualization({ processedData }) {
 
     return (
         <div>
-            <h2>Data Visualization</h2>
-            <p className="text-muted">Explore your data with interactive visualizations</p>
+            <h2><FontAwesomeIcon icon={faChartBar} className="me-2" />Data Visualization</h2>
+            <p className="text-muted">Explore your data with interactive charts</p>
 
             <Card className="mb-3">
+                <Card.Header>
+                    <h5 className="mb-0"><FontAwesomeIcon icon={faPalette} className="me-2" />Chart Builder</h5>
+                </Card.Header>
                 <Card.Body>
                     <Row>
                         <Col md={6}>
                             <Form.Group>
-                                <Form.Label>Visualization Type</Form.Label>
+                                <Form.Label><FontAwesomeIcon icon={faChartLine} className="me-2" />Visualization Type</Form.Label>
                                 <Form.Select value={vizType} onChange={e => setVizType(e.target.value)}>
                                     <option value="histogram">Histogram (Numerical)</option>
                                     <option value="box">Box Plot (Numerical)</option>
@@ -489,27 +504,35 @@ function Visualization({ processedData }) {
                     </Row>
                     <div className="d-flex gap-2 mt-3">
                         <Button variant="primary" onClick={handleGeneratePlot}>
-                            Add Visualization
+                            <FontAwesomeIcon icon={faPlus} className="me-2" />Add Visualization
                         </Button>
                         {plots.length > 0 && (
-                            <Button variant="danger" onClick={handleClearAll}>
-                                Clear All ({plots.length})
-                            </Button>
+                            <>
+                                <Badge bg="secondary" className="d-flex align-items-center px-3">
+                                    {plots.length} chart{plots.length !== 1 ? 's' : ''} created
+                                </Badge>
+                                <Button variant="outline-danger" onClick={handleClearAll}>
+                                    <FontAwesomeIcon icon={faTrash} className="me-2" />Clear All
+                                </Button>
+                            </>
                         )}
                     </div>
                 </Card.Body>
             </Card>
 
             {plots.length > 0 && (
-                <div className="mt-3" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
-                    {plots.map((plot) => (
-                        <ResizablePlot 
-                            key={plot.id}
-                            plot={plot}
-                            onResize={handleResize}
-                            onDelete={handleDeletePlot}
-                        />
-                    ))}
+                <div>
+                    <h5 className="mb-3"><FontAwesomeIcon icon={faChartBar} className="me-2" />Your Visualizations</h5>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+                        {plots.map((plot) => (
+                            <ResizablePlot 
+                                key={plot.id}
+                                plot={plot}
+                                onResize={handleResize}
+                                onDelete={handleDeletePlot}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

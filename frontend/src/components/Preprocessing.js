@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Form, Button, Card, Row, Col, ListGroup, Table, Modal, Offcanvas, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form, Button, Card, Row, Col, ListGroup, Table, Modal, Offcanvas, OverlayTrigger, Tooltip, Badge, Alert } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCog, faExclamationTriangle, faTable, faCheckCircle, faPlus, faList, faRocket, faSync, faLightbulb, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { applyPreprocessing } from '../services/api';
 
 const Preprocessing = ({ originalDataset, columns, processedData, setProcessedData }) => {
@@ -77,6 +79,10 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
         const numericValues = nonMissing.filter(val => !isNaN(val) && val !== '').map(Number);
         const isNumeric = numericValues.length > 0;
         
+        // Count zeros in numeric columns
+        const zeroCount = isNumeric ? numericValues.filter(val => val === 0).length : 0;
+        const zeroPercent = isNumeric && total > 0 ? ((zeroCount / total) * 100).toFixed(2) : 0;
+        
         let stats = {
             name: column,
             total,
@@ -84,7 +90,9 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
             missingPercent,
             nonMissing: nonMissing.length,
             unique: new Set(nonMissing).size,
-            type: isNumeric ? 'Numerical' : 'Categorical'
+            type: isNumeric ? 'Numerical' : 'Categorical',
+            zeroCount,
+            zeroPercent
         };
         
         if (isNumeric && numericValues.length > 0) {
@@ -170,9 +178,10 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                             <option value="">Select Strategy</option>
                             <option value="drop_rows">Drop Rows</option>
                             <option value="forward_fill">Forward Fill</option>
-                            <option value="mean">Mean</option>
-                            <option value="median">Median</option>
-                            <option value="custom">Custom</option>
+                            <option value="mean">Mean (Numerical)</option>
+                            <option value="median">Median (Numerical)</option>
+                            <option value="mode">Mode (Most Frequent)</option>
+                            <option value="custom">Custom Value</option>
                         </Form.Select>
                         {currentStep.params.strategy === 'custom' && (
                             <Form.Control
@@ -299,60 +308,27 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                         <p className="mt-2">This will drop the column{selectedColumn ? `: ${selectedColumn}` : 's (hold Ctrl/Cmd to select multiple)'}</p>
                      </>
                  );
+            case 'replace_zeros':
+                return (
+                    <>
+                        {!selectedColumn && (
+                            <Form.Select onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, column: e.target.value } })} className="mt-2">
+                                <option>Select Column</option>
+                                {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
+                            </Form.Select>
+                        )}
+                        <Alert variant="info" className="mt-2">
+                            <small>
+                                <FontAwesomeIcon icon={faLightbulb} className="me-2" />
+                                This will replace all zeros with missing values (NaN) in the selected column. 
+                                Use this when zeros represent missing data rather than actual zero values.
+                                After replacing, use "Handle Missing Values" to fill them appropriately.
+                            </small>
+                        </Alert>
+                    </>
+                );
             case 'shuffle':
                 return <p className="mt-2">This will randomly shuffle the entire dataset.</p>;
-            case 'remove_outliers':
-                return (
-                    <>
-                        {!selectedColumn && (
-                            <Form.Select onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, column: e.target.value } })} className="mt-2">
-                                <option>Select Column</option>
-                                {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
-                            </Form.Select>
-                        )}
-                        <Form.Select 
-                            value={currentStep.params.method || ''}
-                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
-                            className="mt-2"
-                        >
-                            <option value="">Select Method</option>
-                            <option value="iqr">IQR Method</option>
-                            <option value="z_score">Z-Score Method</option>
-                            <option value="percentile">Percentile Method</option>
-                        </Form.Select>
-                        {currentStep.params.method === 'z_score' && (
-                            <Form.Control
-                                type="number"
-                                placeholder="Z-score threshold (default: 3)"
-                                className="mt-2"
-                                value={currentStep.params.threshold || 3}
-                                onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, threshold: parseFloat(e.target.value) } })}
-                            />
-                        )}
-                    </>
-                );
-            case 'transform_feature':
-                return (
-                    <>
-                        {!selectedColumn && (
-                            <Form.Select onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, column: e.target.value } })} className="mt-2">
-                                <option>Select Column</option>
-                                {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
-                            </Form.Select>
-                        )}
-                        <Form.Select 
-                            value={currentStep.params.method || ''}
-                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
-                            className="mt-2"
-                        >
-                            <option value="">Select Transformation</option>
-                            <option value="log">Log Transform</option>
-                            <option value="sqrt">Square Root</option>
-                            <option value="square">Square</option>
-                            <option value="reciprocal">Reciprocal (1/x)</option>
-                        </Form.Select>
-                    </>
-                );
             default:
                 return null;
         }
@@ -375,132 +351,189 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
     const displayColumns = dataToDisplay && dataToDisplay.length > 0 ? Object.keys(dataToDisplay[0]) : [];
 
     if (!dataToDisplay || dataToDisplay.length === 0) {
-        return <div><h2>2. Preprocessing Pipeline</h2><p>Please upload a dataset first.</p></div>;
+        return (
+            <div>
+                <h2><FontAwesomeIcon icon={faCog} className="me-2" />Preprocessing Pipeline</h2>
+                <Alert variant="warning">
+                    <Alert.Heading><FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />No Data Available</Alert.Heading>
+                    <p>Please upload a dataset first.</p>
+                </Alert>
+            </div>
+        );
     }
 
     return (
         <div>
-            <h2>2. Preprocessing Pipeline</h2>
+            <h2>⚙️ Preprocessing Pipeline</h2>
             <Row>
                 <Col md={9}>
-                    <Card>
+                    <Card className="mb-3">
+                        <Card.Header>
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h5 className="mb-0"><FontAwesomeIcon icon={faTable} className="me-2" />Dataset Preview</h5>
+                                <div>
+                                    <Badge bg="info" className="me-2">{dataToDisplay.length} rows</Badge>
+                                    <Badge bg="secondary">{displayColumns.length} columns</Badge>
+                                </div>
+                            </div>
+                        </Card.Header>
                         <Card.Body>
                             <div className="d-flex justify-content-between align-items-center mb-3">
-                                <Card.Title className="mb-0">Dataset Preview</Card.Title>
+                                <div className="text-muted small">
+                                    {bulkMode 
+                                        ? <><FontAwesomeIcon icon={faWandMagicSparkles} className="me-1" />Select multiple columns and apply operations in bulk</>
+                                        : <><FontAwesomeIcon icon={faLightbulb} className="me-1" />Click column headers to view stats and apply transformations</>
+                                    }
+                                </div>
                                 <div>
                                     {bulkMode ? (
                                         <>
-                                            <Button variant="success" size="sm" onClick={handleBulkApply} className="me-2">
-                                                Apply to {selectedColumns.length} Column{selectedColumns.length !== 1 ? 's' : ''}
+                                            <Button 
+                                                variant="success" 
+                                                size="sm" 
+                                                onClick={handleBulkApply} 
+                                                className="me-2"
+                                                disabled={selectedColumns.length === 0}
+                                            >
+                                                <FontAwesomeIcon icon={faCheckCircle} className="me-2" />Apply to {selectedColumns.length} Column{selectedColumns.length !== 1 ? 's' : ''}
                                             </Button>
-                                            <Button variant="secondary" size="sm" onClick={handleCancelBulkMode}>
+                                            <Button variant="outline-secondary" size="sm" onClick={handleCancelBulkMode}>
                                                 Cancel
                                             </Button>
                                         </>
                                     ) : (
                                         <>
-                                            <Button variant="outline-success" size="sm" onClick={() => setBulkMode(true)} className="me-2">
-                                                Bulk Select
+                                            <Button variant="outline-primary" size="sm" onClick={() => setBulkMode(true)} className="me-2">
+                                                <FontAwesomeIcon icon={faList} className="me-2" />Bulk Select
                                             </Button>
-                                            <Button variant="outline-primary" size="sm" onClick={handleAddGeneralStep}>
-                                                + Add Preprocessing Step
+                                            <Button variant="primary" size="sm" onClick={handleAddGeneralStep}>
+                                                <FontAwesomeIcon icon={faPlus} className="me-2" />Add Step
                                             </Button>
                                         </>
                                     )}
                                 </div>
                             </div>
-                            <p>
-                                {bulkMode 
-                                    ? 'Select multiple columns and click "Apply to X Columns" to apply the same operation to all.'
-                                    : 'Click on a column header to view stats and apply transformations.'
-                                }
-                            </p>
-                            <Table striped bordered hover responsive>
-                                <thead>
-                                    <tr>
-                                        {bulkMode && (
-                                            <th style={{width: '50px'}}>
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    checked={selectedColumns.length === displayColumns.length}
-                                                    onChange={handleSelectAll}
-                                                    label="All"
-                                                />
-                                            </th>
-                                        )}
-                                        {displayColumns.map(col => (
-                                            <OverlayTrigger
-                                                key={col}
-                                                placement="top"
-                                                overlay={renderTooltip(col)}
-                                            >
-                                                <th 
-                                                    onClick={() => handleColumnSelect(col)} 
-                                                    style={{
-                                                        cursor: 'pointer',
-                                                        backgroundColor: selectedColumns.includes(col) ? '#d4edda' : 'inherit'
-                                                    }}
-                                                >
-                                                    {bulkMode && (
-                                                        <Form.Check
-                                                            inline
-                                                            type="checkbox"
-                                                            checked={selectedColumns.includes(col)}
-                                                            onChange={() => {}}
-                                                        />
-                                                    )}
-                                                    {col}
+                            <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                                <Table striped bordered hover responsive>
+                                    <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+                                        <tr>
+                                            {bulkMode && (
+                                                <th style={{width: '50px'}}>
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={selectedColumns.length === displayColumns.length}
+                                                        onChange={handleSelectAll}
+                                                        label=""
+                                                    />
                                                 </th>
-                                            </OverlayTrigger>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {dataToDisplay.slice(0, 100).map((row, rowIndex) => (
-                                        <tr key={rowIndex}>
-                                            {bulkMode && <td></td>}
-                                            {displayColumns.map((col, colIndex) => <td key={colIndex}>{String(row[col])}</td>)}
+                                            )}
+                                            {displayColumns.map(col => (
+                                                <OverlayTrigger
+                                                    key={col}
+                                                    placement="top"
+                                                    overlay={renderTooltip(col)}
+                                                >
+                                                    <th 
+                                                        onClick={() => handleColumnSelect(col)} 
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                            backgroundColor: selectedColumns.includes(col) ? 'rgba(102, 126, 234, 0.1)' : 'inherit',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                    >
+                                                        {bulkMode && (
+                                                            <Form.Check
+                                                                inline
+                                                                type="checkbox"
+                                                                checked={selectedColumns.includes(col)}
+                                                                onChange={() => {}}
+                                                            />
+                                                        )}
+                                                        {col}
+                                                    </th>
+                                                </OverlayTrigger>
+                                            ))}
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
+                                    </thead>
+                                    <tbody>
+                                        {dataToDisplay.slice(0, 100).map((row, rowIndex) => (
+                                            <tr key={rowIndex}>
+                                                {bulkMode && <td></td>}
+                                                {displayColumns.map((col, colIndex) => <td key={colIndex}>{String(row[col])}</td>)}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
                         </Card.Body>
                     </Card>
                 </Col>
                 <Col md={3}>
-                    <h5>Preprocessing Pipeline</h5>
-                    {steps.length === 0 ? (
-                        <p className="text-muted">No steps added yet</p>
-                    ) : (
-                        <ListGroup>
-                            {steps.map((step, i) => (
-                                <ListGroup.Item key={i}>
-                                    <div className="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <strong>{step.operation.replace('_', ' ').toUpperCase()}</strong>
-                                            {step.params.column && <div className="text-muted small">Column: {step.params.column}</div>}
-                                            {step.params.method && <div className="text-muted small">Method: {step.params.method}</div>}
-                                            {step.params.strategy && <div className="text-muted small">Strategy: {step.params.strategy}</div>}
-                                        </div>
-                                        <Button 
-                                            variant="link" 
-                                            size="sm" 
-                                            className="text-danger p-0"
-                                            onClick={() => setSteps(steps.filter((_, idx) => idx !== i))}
-                                        >
-                                            ×
-                                        </Button>
-                                    </div>
-                                </ListGroup.Item>
-                            ))}
-                        </ListGroup>
-                    )}
-                    {steps.length > 0 && (
-                        <>
-                            <Button onClick={handleApply} variant="success" className="mt-3 w-100">Apply All Steps</Button>
-                        </>
-                    )}
-                    <Button onClick={handleReset} variant="danger" className="mt-2 w-100">Reset to Original</Button>
+                    <Card>
+                        <Card.Header>
+                            <h5 className="mb-0"><FontAwesomeIcon icon={faCog} className="me-2" />Pipeline Steps</h5>
+                        </Card.Header>
+                        <Card.Body>
+                            {steps.length === 0 ? (
+                                <div className="text-center text-muted py-4">
+                                    <p className="mb-0">No steps added</p>
+                                    <small>Build your pipeline by adding preprocessing steps</small>
+                                </div>
+                            ) : (
+                                <ListGroup variant="flush">
+                                    {steps.map((step, i) => (
+                                        <ListGroup.Item key={i} className="px-0">
+                                            <div className="d-flex justify-content-between align-items-start">
+                                                <div className="flex-grow-1">
+                                                    <Badge bg="primary" className="mb-1">
+                                                        Step {i + 1}
+                                                    </Badge>
+                                                    <div><strong>{step.operation.replace(/_/g, ' ').toUpperCase()}</strong></div>
+                                                    {step.params.column && (
+                                                        <div className="text-muted small">
+                                                            <Badge bg="light" text="dark" className="me-1">Column:</Badge>
+                                                            {step.params.column}
+                                                        </div>
+                                                    )}
+                                                    {step.params.method && (
+                                                        <div className="text-muted small">
+                                                            <Badge bg="light" text="dark" className="me-1">Method:</Badge>
+                                                            {step.params.method}
+                                                        </div>
+                                                    )}
+                                                    {step.params.strategy && (
+                                                        <div className="text-muted small">
+                                                            <Badge bg="light" text="dark" className="me-1">Strategy:</Badge>
+                                                            {step.params.strategy}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <Button 
+                                                    variant="link" 
+                                                    size="sm" 
+                                                    className="text-danger p-0 ms-2"
+                                                    onClick={() => setSteps(steps.filter((_, idx) => idx !== i))}
+                                                    title="Remove step"
+                                                >
+                                                    ✕
+                                                </Button>
+                                            </div>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            )}
+                            {steps.length > 0 && (
+                                <>
+                                    <Button onClick={handleApply} variant="success" className="mt-3 w-100">
+                                        <FontAwesomeIcon icon={faRocket} className="me-2" />Apply All Steps
+                                    </Button>
+                                </>
+                            )}
+                            <Button onClick={handleReset} variant="outline-danger" className="mt-2 w-100">
+                                <FontAwesomeIcon icon={faSync} className="me-2" />Reset to Original
+                            </Button>
+                        </Card.Body>
+                    </Card>
                 </Col>
             </Row>
 
@@ -531,12 +564,11 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                         <Form.Label>Operation</Form.Label>
                         <Form.Select value={currentStep.operation} onChange={e => setCurrentStep({ ...currentStep, operation: e.target.value })}>
                             <option value="">Select Operation</option>
+                            <option value="replace_zeros">Replace Zeros as Missing</option>
                             <option value="handle_missing">Handle Missing Values</option>
                             <option value="encode_categorical">Encode Categorical</option>
                             <option value="discretize_numerical">Discretize Numerical</option>
                             <option value="scale_numerical">Scale Numerical</option>
-                            <option value="remove_outliers">Remove Outliers</option>
-                            <option value="transform_feature">Transform Feature</option>
                             <option value="rename_column">Rename Column</option>
                             <option value="drop_columns">Drop Columns</option>
                             <option value="shuffle">Shuffle Dataset</option>
@@ -571,6 +603,20 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                     <tr><td><strong>Total Values:</strong></td><td>{columnInfoData.total}</td></tr>
                                     <tr><td><strong>Non-Missing:</strong></td><td>{columnInfoData.nonMissing}</td></tr>
                                     <tr><td><strong>Missing:</strong></td><td>{columnInfoData.missing} ({columnInfoData.missingPercent}%)</td></tr>
+                                    {columnInfoData.type === 'Numerical' && columnInfoData.zeroCount > 0 && (
+                                        <tr>
+                                            <td><strong>Zero Values:</strong></td>
+                                            <td>
+                                                {columnInfoData.zeroCount} ({columnInfoData.zeroPercent}%)
+                                                <div className="mt-1">
+                                                    <small className="text-warning">
+                                                        <FontAwesomeIcon icon={faExclamationTriangle} className="me-1" />
+                                                        If zeros represent missing values, use "Replace Zeros as Missing"
+                                                    </small>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
                                     <tr><td><strong>Unique Values:</strong></td><td>{columnInfoData.unique}</td></tr>
                                 </tbody>
                             </Table>

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Nav } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFlask, faDatabase, faChartBar, faCog, faCut, faBrain, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import DatasetUpload from './components/DatasetUpload';
 import Preprocessing from './components/Preprocessing';
 import Visualization from './components/Visualization';
@@ -44,16 +46,52 @@ function App() {
     };
 
     return (
-        <Container fluid>
+        <Container fluid className="app-container">
             <Row>
                 <Col md={2} className="sidebar">
+                    <h4><FontAwesomeIcon icon={faFlask} /> ML Lab</h4>
                     <Nav className="flex-column">
-                        <Nav.Link onClick={() => handlePageChange('dataset')}>1. Dataset</Nav.Link>
-                        <Nav.Link onClick={() => handlePageChange('preprocessing')} disabled={!originalDataset}>2. Preprocessing</Nav.Link>
-                        <Nav.Link onClick={() => handlePageChange('visualization')} disabled={!processedData}>3. Visualization</Nav.Link>
-                        <Nav.Link onClick={() => handlePageChange('split')} disabled={!processedData}>4. Train/Test Split</Nav.Link>
-                        <Nav.Link onClick={() => handlePageChange('model')} disabled={!splitData}>5. Model Training</Nav.Link>
-                        <Nav.Link onClick={() => handlePageChange('results')} disabled={!results}>6. Results</Nav.Link>
+                        <Nav.Link 
+                            onClick={() => handlePageChange('dataset')}
+                            className={activePage === 'dataset' ? 'active' : ''}
+                        >
+                            <FontAwesomeIcon icon={faDatabase} /> Dataset Upload
+                        </Nav.Link>
+                        <Nav.Link 
+                            onClick={() => handlePageChange('preprocessing')} 
+                            disabled={!originalDataset}
+                            className={activePage === 'preprocessing' ? 'active' : ''}
+                        >
+                            <FontAwesomeIcon icon={faCog} /> Preprocessing
+                        </Nav.Link>
+                        <Nav.Link 
+                            onClick={() => handlePageChange('visualization')} 
+                            disabled={!processedData}
+                            className={activePage === 'visualization' ? 'active' : ''}
+                        >
+                            <FontAwesomeIcon icon={faChartBar} /> Visualization
+                        </Nav.Link>
+                        <Nav.Link 
+                            onClick={() => handlePageChange('split')} 
+                            disabled={!processedData}
+                            className={activePage === 'split' ? 'active' : ''}
+                        >
+                            <FontAwesomeIcon icon={faCut} /> Train/Test Split
+                        </Nav.Link>
+                        <Nav.Link 
+                            onClick={() => handlePageChange('model')} 
+                            disabled={!splitData}
+                            className={activePage === 'model' ? 'active' : ''}
+                        >
+                            <FontAwesomeIcon icon={faBrain} /> Model Training
+                        </Nav.Link>
+                        <Nav.Link 
+                            onClick={() => handlePageChange('results')} 
+                            disabled={!results}
+                            className={activePage === 'results' ? 'active' : ''}
+                        >
+                            <FontAwesomeIcon icon={faChartLine} /> Results
+                        </Nav.Link>
                     </Nav>
                 </Col>
                 <Col md={10} className="main-content">

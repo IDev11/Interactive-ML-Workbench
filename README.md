@@ -1,255 +1,182 @@
-# ML Experimentation Platform 🚀
+# ML Experimentation Lab
 
-A comprehensive machine learning experimentation platform with custom implementations of popular algorithms, advanced preprocessing, and professional-grade visualizations.
+An interactive web-based platform for machine learning experimentation, featuring complete implementations of ML algorithms from scratch, comprehensive data preprocessing, and interactive visualizations.
 
-## ✨ Key Features
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![React](https://img.shields.io/badge/react-18.0+-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-### 🤖 Machine Learning Algorithms (From Scratch!)
-- **Naive Bayes** - Gaussian PDF with Laplace smoothing
-- **C4.5 Decision Tree** - Information gain ratio with feature importance
+## ✨ Features
+
+### 🤖 ML Algorithms (Implemented from Scratch)
+- **Naive Bayes** - Probabilistic classifier with Gaussian and categorical support
+- **C4.5 Decision Tree** - Information gain ratio with pruning
 - **CHAID** - Chi-square Automatic Interaction Detection with category merging
+- **K-Nearest Neighbors** - Instance-based learning with multiple distance metrics
 
-### 📊 Comprehensive Results Analysis
-- **Confusion Matrix** - Interactive heatmap and detailed table
-- **ROC Curves** - With AUC scores for binary classification
-- **Precision-Recall Curves** - With average precision
-- **Feature Importance** - For tree-based models
-- **Cross-Validation** - K-fold with fold-by-fold analysis
-- **Per-Class Metrics** - TP, TN, FP, FN, Precision, Recall, F1, Specificity
-
-### 🛠️ Advanced Preprocessing
-- **Missing Values** - Drop, forward fill, mean, median, custom
-- **Encoding** - One-hot, label encoding
+### 📊 Data Preprocessing
+- **Missing value handling** - Mean, median, mode, forward fill, drop, custom values
+- **Categorical encoding** - One-hot encoding, label encoding
+- **Feature scaling** - Min-max normalization, Z-score standardization
 - **Discretization** - Equal width, equal frequency, custom bins
-- **Scaling** - Min-max, z-score
-- **Outlier Removal** - IQR, z-score, percentile methods ✨ NEW
-- **Transformations** - Log, sqrt, square, reciprocal ✨ NEW
-- **SMOTE** - Synthetic minority oversampling ✨ NEW
-- **Bulk Operations** - Apply same operation to multiple columns ✨ NEW
+- **Zeros as missing** - Handle zeros that represent missing values
+- **Bulk operations** - Apply preprocessing to multiple columns simultaneously
+- **Column-level statistics** - Interactive column information panel
 
-### 📈 Interactive Visualizations
-- **6 Chart Types** - Histogram, box plot, bar chart, scatter, correlation heatmap, pie chart
-- **Drag-to-Resize** - Individual size control for each visualization
-- **Persistent Collection** - Keep multiple visualizations on screen
-- **Real-time Updates** - Automatic refresh after preprocessing
+### 📈 Visualization Tools
+- **Interactive charts** - Bar, line, pie, scatter, box plots, heatmaps
+- **Resizable visualizations** - Drag-to-resize chart cards
+- **Multiple charts** - Create and compare multiple visualizations side-by-side
+- **Real-time updates** - Dynamic chart updates as data changes
 
-### 🎛️ Hyperparameter Tuning
-- **C4.5**: Max depth, min samples split
-- **CHAID**: Alpha, max depth, min samples split, min child node size
-- **Interactive UI** - Real-time parameter validation
+### 🎯 Model Evaluation
+- **Confusion matrix** - Interactive heatmap visualization
+- **Per-class metrics** - TP, TN, FP, FN for each class
+- **Performance metrics** - Precision, Recall, F1-Score, Accuracy
+- **Averaged metrics** - Macro, weighted, and micro averages
+- **Train/Test comparison** - Side-by-side performance analysis
+- **Tree visualization** - For C4.5 and CHAID decision trees
 
-### 💾 Model Persistence
-- **Save Models** - With metadata (accuracy, parameters, timestamp)
-- **Download Models** - For offline use
-- **Model Versioning** - Automatic timestamping
-- **Model Management** - List, download, delete saved models
+### 🔧 Additional Features
+- **Train/Test split** - With optional stratification
+- **Dataset upload** - CSV file support
+- **Preview and statistics** - Dataset overview with column stats
+- **Clean UI** - Modern, minimal design
+- **Responsive layout** - Works on different screen sizes
 
-### 📉 Data Quality Reports
-- **Overview Statistics** - Samples, features, memory usage, duplicates
-- **Column Analysis** - Missing values, outliers, distributions
-- **Class Imbalance** - Detection and recommendations
-- **Correlation Analysis** - Matrix and high correlation pairs
+## 🚀 Getting Started
 
-### ⚡ Cross-Validation
-- **K-Fold** - Regular and stratified
-- **Fold Analysis** - Per-fold metrics and visualization
-- **Statistics** - Mean and standard deviation across folds
+### Prerequisites
+- Python 3.8+
+- Node.js 14+
+- npm or yarn
 
-## 🏗️ Tech Stack
+### Installation
 
-### Backend
-- **FastAPI** - Modern Python web framework
-- **Pandas** - Data manipulation
-- **NumPy** - Numerical computing
-- **SciPy** - Statistical functions (chi-square only)
-- **All ML algorithms implemented from scratch** - No sklearn!
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/ml-experimentation-lab.git
+cd ml-experimentation-lab
+```
 
-### Frontend
-- **React 18** - Modern UI framework
-- **React Bootstrap** - UI components
-- **Plotly.js** - Interactive visualizations
-- **Axios** - HTTP client
-
-## 📦 Installation
-
-### Backend Setup
+2. **Backend Setup**
 ```bash
 cd backend
 pip install -r requirements.txt
-uvicorn app.main:app --reload
 ```
 
-### Frontend Setup
+3. **Frontend Setup**
 ```bash
 cd frontend
 npm install
+```
+
+### Running the Application
+
+1. **Start the Backend Server**
+```bash
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+2. **Start the Frontend (in a new terminal)**
+```bash
+cd frontend
 npm start
 ```
 
-The app will be available at `http://localhost:3000`
-
-## 🎯 Quick Start
-
-1. **Upload Dataset** - CSV or ARFF format
-2. **Preprocess Data** 
-   - Single column: Click column header
-   - Multiple columns: Use "Bulk Select"
-3. **Visualize** - Create multiple resizable charts
-4. **Split Data** - Train/test with optional stratification
-5. **Train Model** - Select algorithm, tune parameters, enable CV
-6. **Analyze Results** - View metrics, ROC curves, feature importance
+3. **Access the Application**
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+- API Docs: `http://localhost:8000/docs`
 
 ## 📁 Project Structure
 
 ```
-tpproject/
+ml-experimentation-lab/
 ├── backend/
 │   ├── app/
-│   │   ├── api/endpoints/        # API routes
-│   │   │   ├── datasets.py
-│   │   │   ├── preprocessing.py
-│   │   │   ├── models.py
-│   │   │   ├── model_persistence.py
-│   │   │   ├── data_quality.py
-│   │   │   └── predictions.py
-│   │   ├── core/                 # ML implementations
+│   │   ├── api/
+│   │   │   └── endpoints/
+│   │   │       ├── datasets.py
+│   │   │       ├── preprocessing.py
+│   │   │       ├── models.py
+│   │   │       └── visualizations.py
+│   │   ├── core/
 │   │   │   ├── models/
 │   │   │   │   ├── naive_bayes.py
 │   │   │   │   ├── c45.py
-│   │   │   │   └── chaid.py
-│   │   │   ├── evaluation.py
+│   │   │   │   ├── chaid.py
+│   │   │   │   └── knn.py
 │   │   │   ├── preprocessing.py
-│   │   │   ├── cross_validation.py
-│   │   │   ├── roc_auc.py
-│   │   │   └── utils.py
+│   │   │   └── evaluation.py
 │   │   └── main.py
-│   ├── saved_models/             # Persisted models
 │   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── DatasetUpload.js
-│   │   │   ├── Preprocessing.js
-│   │   │   ├── Visualization.js
-│   │   │   ├── TrainTestSplit.js
-│   │   │   ├── ModelSelection.js
-│   │   │   └── Results.js
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.js
-│   │   └── index.js
-│   └── package.json
-├── FEATURES.md                   # Detailed feature documentation
-└── README.md
+│
+└── frontend/
+    ├── src/
+    │   ├── components/
+    │   │   ├── DatasetUpload.js
+    │   │   ├── Preprocessing.js
+    │   │   ├── TrainTestSplit.js
+    │   │   ├── ModelSelection.js
+    │   │   ├── Visualization.js
+    │   │   └── Results.js
+    │   ├── services/
+    │   │   └── api.js
+    │   ├── App.js
+    │   └── App.css
+    └── package.json
 ```
 
-## 🎓 Educational Value
+## 🎓 Use Cases
 
-This project demonstrates:
-- **ML Algorithm Implementation** - All from scratch without sklearn
-- **Statistical Foundations** - Entropy, information gain, chi-square tests
-- **Model Evaluation** - Comprehensive metrics and visualizations
-- **Data Preprocessing** - Advanced techniques including SMOTE
-- **Full-Stack Development** - React + FastAPI integration
-- **Software Engineering** - Modular design, error handling, documentation
+- **Educational** - Learn ML algorithms by exploring from-scratch implementations
+- **Data Science** - Quick experimentation with different preprocessing techniques
+- **Prototyping** - Rapidly test multiple algorithms on your dataset
+- **Research** - Compare algorithm performance with detailed metrics
 
-## 📊 Features Implemented From Scratch
+## 🛠️ Technologies
 
-- ✅ Naive Bayes (Gaussian PDF, Laplace smoothing)
-- ✅ C4.5 Decision Tree (Information gain ratio, label encoding)
-- ✅ CHAID (Chi-square testing, category merging, numerical discretization)
-- ✅ Train/Test Split (Stratified and random)
-- ✅ K-Fold Cross-Validation (Regular and stratified)
-- ✅ Confusion Matrix
-- ✅ All Metrics (TP/TN/FP/FN, Precision, Recall, F1, Specificity)
-- ✅ ROC Curve & AUC (Trapezoidal rule)
-- ✅ Precision-Recall Curve & AP
-- ✅ Feature Importance (Information gain & chi-square based)
-- ✅ SMOTE Oversampling (K-nearest neighbors)
+### Backend
+- **FastAPI** - Modern Python web framework
+- **NumPy & Pandas** - Data manipulation and numerical computing
+- **SciPy** - Statistical functions (chi-square tests)
 
-**Zero sklearn dependencies for ML functionality!**
+### Frontend
+- **React** - UI framework
+- **Bootstrap** - Component library and styling
+- **Plotly.js** - Interactive visualizations
+- **Font Awesome** - Icon library
+- **Axios** - HTTP client
 
-## 🚀 Recent Updates
+## 📊 Supported Datasets
 
-### Version 2.0 (Current)
-- ✅ Cross-validation with fold analysis
-- ✅ ROC and Precision-Recall curves
-- ✅ Feature importance visualization
-- ✅ Hyperparameter tuning UI
-- ✅ Advanced preprocessing (outliers, transformations, SMOTE)
-- ✅ Data quality reports
-- ✅ Model persistence system
-- ✅ Bulk preprocessing operations
-- ✅ Comprehensive results dashboard
-
-### Version 1.0
-- ✅ Three ML algorithms from scratch
-- ✅ Interactive preprocessing pipeline
-- ✅ Resizable data visualizations
-- ✅ Train/test splitting
-- ✅ Complete evaluation metrics
-
-## 📝 API Endpoints
-
-### Datasets
-- `POST /api/datasets/upload` - Upload CSV/ARFF
-
-### Preprocessing
-- `POST /api/preprocessing/apply` - Apply preprocessing steps
-- `POST /api/preprocessing/split` - Train/test split
-
-### Models
-- `POST /api/models/train` - Train and evaluate model
-
-### Model Persistence
-- `POST /api/model-persistence/save-model` - Save model
-- `GET /api/model-persistence/list-models` - List saved models
-- `GET /api/model-persistence/download-model/{filename}` - Download
-- `DELETE /api/model-persistence/delete-model/{filename}` - Delete
-
-### Data Quality
-- `POST /api/data-quality/analyze` - Generate data quality report
-
-### Predictions
-- `POST /api/predictions/predict` - Single prediction
-- `POST /api/predictions/batch-predict` - Batch prediction
+- CSV files
+- Numerical and categorical features
+- Binary and multi-class classification
+- Datasets with missing values
 
 ## 🤝 Contributing
 
-This is an educational project. Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
-- Use for learning
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-This project is created for educational purposes.
+## 📝 License
 
-## 🎯 Use Cases
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- **Education** - Learn ML algorithms from scratch
-- **Experimentation** - Quickly test different approaches
-- **Prototyping** - Rapid ML model development
-- **Analysis** - Comprehensive data and model analysis
-- **Teaching** - Demonstrate ML concepts with visualization
+## 🙏 Acknowledgments
 
-## 💡 Tips
+- ML algorithms implemented following academic papers and textbooks
+- UI/UX inspired by modern data science platforms
+- Built as a comprehensive data mining educational tool
 
-- **Use Bulk Select** - Apply same preprocessing to multiple columns
-- **Enable Cross-Validation** - Get more reliable performance estimates
-- **Check Feature Importance** - Understand which features matter most
-- **View ROC Curves** - Assess model performance at different thresholds
-- **Save Models** - Keep track of your best models
-- **Analyze Data Quality** - Understand your data before training
+## 📧 Contact
 
-## 📞 Support
-
-For issues or questions, please check:
-- `FEATURES.md` - Detailed feature documentation
-- Git commit history - Implementation details
-- Code comments - Inline documentation
-
----
-
-**Built with ❤️ for machine learning education and experimentation**
+Project Link: [https://github.com/yourusername/ml-experimentation-lab](https://github.com/yourusername/ml-experimentation-lab)

@@ -1,6 +1,18 @@
 import pandas as pd
 import numpy as np
 
+def replace_zeros_with_nan(df, column):
+    """
+    Replace zeros with NaN in specified column.
+    Useful when zeros represent missing values.
+    """
+    df = df.copy()
+    if column in df.columns:
+        # Only replace zeros in numeric columns
+        if pd.api.types.is_numeric_dtype(df[column]):
+            df[column] = df[column].replace(0, np.nan)
+    return df
+
 def handle_missing_values(df, column, strategy, value=None):
     if strategy == 'drop_rows':
         return df.dropna(subset=[column])
@@ -10,6 +22,11 @@ def handle_missing_values(df, column, strategy, value=None):
         return df.fillna({column: df[column].mean()})
     if strategy == 'median':
         return df.fillna({column: df[column].median()})
+    if strategy == 'mode':
+        mode_value = df[column].mode()
+        if len(mode_value) > 0:
+            return df.fillna({column: mode_value[0]})
+        return df
     if strategy == 'custom':
         return df.fillna({column: value})
     return df
@@ -105,118 +122,3 @@ def split_data(df, target, test_size=0.2, stratify=False):
     y_test = test_df[target]
     
     return X_train, X_test, y_train, y_test
-
-def remove_outliers(df, column, method, threshold=None):
-    """
-    Remove outliers from a numerical column
-    """
-    if method == 'iqr':
-        Q1 = df[column].quantile(0.25)
-        Q3 = df[column].quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
-        return df[(df[column] >= lower_bound) & (df[column] <= upper_bound)]
-    elif method == 'z_score':
-        z_threshold = threshold if threshold else 3
-        mean = df[column].mean()
-        std = df[column].std()
-        z_scores = np.abs((df[column] - mean) / std)
-        return df[z_scores < z_threshold]
-    elif method == 'percentile':
-        lower = df[column].quantile(0.01)
-        upper = df[column].quantile(0.99)
-        return df[(df[column] >= lower) & (df[column] <= upper)]
-    return df
-
-def transform_feature(df, column, method):
-    """
-    Apply mathematical transformations to features
-    """
-    if method == 'log':
-        # Add small constant to avoid log(0)
-        df[column] = np.log(df[column] + 1e-10)
-    elif method == 'sqrt':
-        df[column] = np.sqrt(np.abs(df[column]))
-    elif method == 'square':
-        df[column] = df[column] ** 2
-    elif method == 'reciprocal':
-        # Avoid division by zero
-        df[column] = 1 / (df[column] + 1e-10)
-    return df
-
-def smote_oversample(X, y, k_neighbors=5, random_state=None):
-    """
-    Synthetic Minority Over-sampling Technique (SMOTE) implemented from scratch
-    """
-    if random_state is not None:
-        np.random.seed(random_state)
-    
-    # Get class distribution
-    unique_classes, counts = np.unique(y, return_counts=True)
-    
-    if len(unique_classes) < 2:
-        return X, y
-    
-    # Find majority and minority classes
-    majority_class = unique_classes[np.argmax(counts)]
-    minority_class = unique_classes[np.argmin(counts)]
-    majority_count = np.max(counts)
-    minority_count = np.min(counts)
-    
-    # Get minority class samples
-    minority_indices = np.where(y == minority_class)[0]
-    X_minority = X.iloc[minority_indices] if hasattr(X, 'iloc') else X[minority_indices]
-    
-    # Calculate number of synthetic samples needed
-    n_synthetic = majority_count - minority_count
-    
-    if n_synthetic <= 0:
-        return X, y
-    
-    synthetic_samples = []
-    
-    for _ in range(n_synthetic):
-        # Randomly select a minority sample
-        idx = np.random.randint(0, len(X_minority))
-        sample = X_minority.iloc[idx] if hasattr(X_minority, 'iloc') else X_minority[idx]
-        
-        # Find k nearest neighbors (using simple Euclidean distance)
-        distances = []
-        for i in range(len(X_minority)):
-            if i != idx:
-                neighbor = X_minority.iloc[i] if hasattr(X_minority, 'iloc') else X_minority[i]
-                dist = np.sqrt(np.sum((sample.values - neighbor.values) ** 2))
-                distances.append((i, dist))
-        
-        # Get k nearest neighbors
-        distances.sort(key=lambda x: x[1])
-        k = min(k_neighbors, len(distances))
-        nearest = distances[:k]
-        
-        # Randomly select one of the k nearest neighbors
-        neighbor_idx = nearest[np.random.randint(0, k)][0]
-        neighbor = X_minority.iloc[neighbor_idx] if hasattr(X_minority, 'iloc') else X_minority[neighbor_idx]
-        
-        # Generate synthetic sample
-        diff = neighbor.values - sample.values
-        gap = np.random.random()
-        synthetic = sample.values + gap * diff
-        
-        synthetic_samples.append(synthetic)
-    
-    # Combine original and synthetic samples
-    if hasattr(X, 'iloc'):
-        synthetic_df = pd.DataFrame(synthetic_samples, columns=X.columns)
-        X_balanced = pd.concat([X, synthetic_df], ignore_index=True)
-    else:
-        X_balanced = np.vstack([X, np.array(synthetic_samples)])
-    
-    # Extend labels
-    if hasattr(y, 'iloc'):
-        y_synthetic = pd.Series([minority_class] * n_synthetic)
-        y_balanced = pd.concat([y, y_synthetic], ignore_index=True)
-    else:
-        y_balanced = np.concatenate([y, np.array([minority_class] * n_synthetic)])
-    
-    return X_balanced, y_balanced

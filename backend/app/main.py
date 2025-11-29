@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import datasets, preprocessing, models, model_persistence, data_quality, predictions
+from app.api.endpoints import datasets, preprocessing, models
 
 app = FastAPI()
 
@@ -21,9 +21,6 @@ app.add_middleware(
 app.include_router(datasets.router, prefix="/api/datasets", tags=["datasets"])
 app.include_router(preprocessing.router, prefix="/api/preprocessing", tags=["preprocessing"])
 app.include_router(models.router, prefix="/api/models", tags=["models"])
-app.include_router(model_persistence.router, prefix="/api/model-persistence", tags=["model_persistence"])
-app.include_router(data_quality.router, prefix="/api/data-quality", tags=["data_quality"])
-app.include_router(predictions.router, prefix="/api/predictions", tags=["predictions"])
 
 @app.get("/")
 def read_root():
