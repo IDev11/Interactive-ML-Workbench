@@ -9,9 +9,9 @@ An interactive web-based platform for machine learning experimentation, featurin
 
 ![Dashboard](assets/dashboard.png)
 
-## ✨ Features
+## Features
 
-### 🤖 ML Algorithms (Implemented from Scratch & TensorFlow)
+### ML Algorithms (Implemented from Scratch & TensorFlow)
 - **Naive Bayes** - Probabilistic classifier with Gaussian and categorical support
 - **C4.5 Decision Tree** - Information gain ratio with pruning
 - **CHAID** - Chi-square Automatic Interaction Detection with category merging
@@ -19,7 +19,7 @@ An interactive web-based platform for machine learning experimentation, featurin
 - **Neural Network** - Multi-layer Perceptron (MLP) powered by TensorFlow/Keras
 - **Convolutional Neural Network (CNN)** - Deep learning model for image classification (e.g., MNIST)
 
-### 📊 Data Preprocessing
+### Data Preprocessing
 ![Preprocessing Pipeline](assets/preprocessing.png)
 - **Missing value handling** - Mean, median, mode, forward fill, drop, custom values
 - **Categorical encoding** - One-hot encoding, label encoding
@@ -29,13 +29,13 @@ An interactive web-based platform for machine learning experimentation, featurin
 - **Bulk operations** - Apply preprocessing to multiple columns simultaneously
 - **Column-level statistics** - Interactive column information panel
 
-### 📈 Visualization Tools
+### Visualization Tools
 - **Interactive charts** - Bar, line, pie, scatter, box plots, heatmaps
 - **Resizable visualizations** - Drag-to-resize chart cards
 - **Multiple charts** - Create and compare multiple visualizations side-by-side
 - **Real-time updates** - Dynamic chart updates as data changes
 
-### 🎯 Model Evaluation
+### Model Evaluation
 - **Confusion matrix** - Interactive heatmap visualization
 - **Per-class metrics** - TP, TN, FP, FN for each class
 - **Performance metrics** - Precision, Recall, F1-Score, Accuracy
@@ -43,14 +43,14 @@ An interactive web-based platform for machine learning experimentation, featurin
 - **Train/Test comparison** - Side-by-side performance analysis
 - **Tree visualization** - For C4.5 and CHAID decision trees
 
-### 🔧 Additional Features
+### Additional Features
 - **Train/Test split** - With optional stratification
-- **Dataset upload** - CSV file support (up to 500MB+ with streaming upload)
+- **Dataset upload** - CSV and ARFF file support (up to 500MB+ with streaming upload)
 - **Preview and statistics** - Dataset overview with column stats
 - **Clean UI** - Modern "Research Lab" design with FontAwesome icons
 - **Responsive layout** - Works on different screen sizes
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.8+
@@ -96,7 +96,7 @@ npm start
 - Backend API: `http://localhost:8000`
 - API Docs: `http://localhost:8000/docs`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ml-experimentation-lab/
@@ -138,14 +138,14 @@ ml-experimentation-lab/
     └── package.json
 ```
 
-## 🎓 Use Cases
+## Use Cases
 
 - **Educational** - Learn ML algorithms by exploring from-scratch implementations
 - **Data Science** - Quick experimentation with different preprocessing techniques
 - **Prototyping** - Rapidly test multiple algorithms on your dataset
 - **Research** - Compare algorithm performance with detailed metrics
 
-## 🛠️ Technologies
+## Technologies
 
 ### Backend
 - **FastAPI** - Modern Python web framework
@@ -160,14 +160,14 @@ ml-experimentation-lab/
 - **Font Awesome** - Icon library
 - **Axios** - HTTP client
 
-## 📊 Supported Datasets
+## Supported Datasets
 
 - CSV files
 - Numerical and categorical features
 - Binary and multi-class classification
 - Datasets with missing values
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -177,16 +177,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - ML algorithms implemented following academic papers and textbooks
 - UI/UX inspired by modern data science platforms
 - Built as a comprehensive data mining educational tool
 
-## 📧 Contact
-
-Project Link: [https://github.com/yourusername/ml-experimentation-lab](https://github.com/yourusername/ml-experimentation-lab)
