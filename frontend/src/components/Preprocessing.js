@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Card, Row, Col, ListGroup, Table, Modal, Offcanvas, OverlayTrigger, Tooltip, Badge, Alert } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCog, faExclamationTriangle, faTable, faCheckCircle, faPlus, faList, faRocket, faSync, faLightbulb, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
+import { faCog, faCogs, faExclamationTriangle, faTable, faCheckCircle, faPlus, faList, faRocket, faSync, faLightbulb, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { applyPreprocessing } from '../services/api';
 
 const Preprocessing = ({ originalDataset, columns, processedData, setProcessedData }) => {
@@ -72,17 +72,17 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
         const total = columnData.length;
         const missing = columnData.filter(val => val === null || val === undefined || val === '' || String(val).toLowerCase() === 'nan').length;
         const missingPercent = ((missing / total) * 100).toFixed(2);
-        
+
         const nonMissing = columnData.filter(val => val !== null && val !== undefined && val !== '' && String(val).toLowerCase() !== 'nan');
-        
+
         // Check if numeric
         const numericValues = nonMissing.filter(val => !isNaN(val) && val !== '').map(Number);
         const isNumeric = numericValues.length > 0;
-        
+
         // Count zeros in numeric columns
         const zeroCount = isNumeric ? numericValues.filter(val => val === 0).length : 0;
         const zeroPercent = isNumeric && total > 0 ? ((zeroCount / total) * 100).toFixed(2) : 0;
-        
+
         let stats = {
             name: column,
             total,
@@ -94,14 +94,14 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
             zeroCount,
             zeroPercent
         };
-        
+
         if (isNumeric && numericValues.length > 0) {
             const sorted = [...numericValues].sort((a, b) => a - b);
             const sum = numericValues.reduce((a, b) => a + b, 0);
             const mean = sum / numericValues.length;
             const variance = numericValues.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / numericValues.length;
             const std = Math.sqrt(variance);
-            
+
             stats = {
                 ...stats,
                 min: Math.min(...numericValues),
@@ -121,7 +121,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                 .slice(0, 5);
             stats.topValues = topValues;
         }
-        
+
         return stats;
     };
 
@@ -170,9 +170,9 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                 {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
                             </Form.Select>
                         )}
-                        <Form.Select 
+                        <Form.Select
                             value={currentStep.params.strategy || ''}
-                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, strategy: e.target.value } })} 
+                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, strategy: e.target.value } })}
                             className="mt-2"
                         >
                             <option value="">Select Strategy</option>
@@ -202,9 +202,9 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                 {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
                             </Form.Select>
                         )}
-                        <Form.Select 
+                        <Form.Select
                             value={currentStep.params.method || ''}
-                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
+                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })}
                             className="mt-2"
                         >
                             <option value="">Select Method</option>
@@ -222,9 +222,9 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                 {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
                             </Form.Select>
                         )}
-                        <Form.Select 
+                        <Form.Select
                             value={currentStep.params.method || ''}
-                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
+                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })}
                             className="mt-2"
                         >
                             <option value="">Select Method</option>
@@ -233,7 +233,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                             <option value="custom">Custom Bins</option>
                         </Form.Select>
                         {(currentStep.params.method === 'equal_width' || currentStep.params.method === 'equal_frequency') && (
-                             <Form.Control
+                            <Form.Control
                                 type="number"
                                 placeholder="Number of bins"
                                 className="mt-2"
@@ -242,7 +242,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                             />
                         )}
                         {currentStep.params.method === 'custom' && (
-                             <Form.Control
+                            <Form.Control
                                 type="text"
                                 placeholder="Comma-separated bin edges (e.g., 0,10,20)"
                                 className="mt-2"
@@ -253,7 +253,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                     </>
                 );
             case 'scale_numerical':
-                 return (
+                return (
                     <>
                         {!selectedColumn && (
                             <Form.Select onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, column: e.target.value } })} className="mt-2">
@@ -261,9 +261,9 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                 {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
                             </Form.Select>
                         )}
-                        <Form.Select 
+                        <Form.Select
                             value={currentStep.params.method || ''}
-                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })} 
+                            onChange={e => setCurrentStep({ ...currentStep, params: { ...currentStep.params, method: e.target.value } })}
                             className="mt-2"
                         >
                             <option value="">Select Method</option>
@@ -291,23 +291,23 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                     </>
                 );
             case 'drop_columns':
-                 return (
-                     <>
+                return (
+                    <>
                         {!selectedColumn && (
-                            <Form.Select 
+                            <Form.Select
                                 multiple
                                 onChange={e => {
                                     const selected = Array.from(e.target.selectedOptions, option => option.value);
                                     setCurrentStep({ ...currentStep, params: { ...currentStep.params, columns: selected } });
-                                }} 
+                                }}
                                 className="mt-2"
                             >
                                 {displayColumns.map(c => <option key={c} value={c}>{c}</option>)}
                             </Form.Select>
                         )}
                         <p className="mt-2">This will drop the column{selectedColumn ? `: ${selectedColumn}` : 's (hold Ctrl/Cmd to select multiple)'}</p>
-                     </>
-                 );
+                    </>
+                );
             case 'replace_zeros':
                 return (
                     <>
@@ -320,7 +320,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                         <Alert variant="info" className="mt-2">
                             <small>
                                 <FontAwesomeIcon icon={faLightbulb} className="me-2" />
-                                This will replace all zeros with missing values (NaN) in the selected column. 
+                                This will replace all zeros with missing values (NaN) in the selected column.
                                 Use this when zeros represent missing data rather than actual zero values.
                                 After replacing, use "Handle Missing Values" to fill them appropriately.
                             </small>
@@ -339,7 +339,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
         const total = columnData.length;
         const missing = columnData.filter(val => val === null || val === undefined || val === '' || String(val).toLowerCase() === 'nan').length;
         const missingPercent = ((missing / total) * 100).toFixed(2);
-        
+
         return (
             <Tooltip id={`tooltip-${column}`}>
                 Missing: {missingPercent}%
@@ -364,7 +364,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
 
     return (
         <div>
-            <h2>⚙️ Preprocessing Pipeline</h2>
+            <h2><FontAwesomeIcon icon={faCogs} className="me-2" />Preprocessing Pipeline</h2>
             <Row>
                 <Col md={9}>
                     <Card className="mb-3">
@@ -380,7 +380,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                         <Card.Body>
                             <div className="d-flex justify-content-between align-items-center mb-3">
                                 <div className="text-muted small">
-                                    {bulkMode 
+                                    {bulkMode
                                         ? <><FontAwesomeIcon icon={faWandMagicSparkles} className="me-1" />Select multiple columns and apply operations in bulk</>
                                         : <><FontAwesomeIcon icon={faLightbulb} className="me-1" />Click column headers to view stats and apply transformations</>
                                     }
@@ -388,10 +388,10 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                 <div>
                                     {bulkMode ? (
                                         <>
-                                            <Button 
-                                                variant="success" 
-                                                size="sm" 
-                                                onClick={handleBulkApply} 
+                                            <Button
+                                                variant="success"
+                                                size="sm"
+                                                onClick={handleBulkApply}
                                                 className="me-2"
                                                 disabled={selectedColumns.length === 0}
                                             >
@@ -418,7 +418,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                     <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
                                         <tr>
                                             {bulkMode && (
-                                                <th style={{width: '50px'}}>
+                                                <th style={{ width: '50px' }}>
                                                     <Form.Check
                                                         type="checkbox"
                                                         checked={selectedColumns.length === displayColumns.length}
@@ -433,8 +433,8 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                                     placement="top"
                                                     overlay={renderTooltip(col)}
                                                 >
-                                                    <th 
-                                                        onClick={() => handleColumnSelect(col)} 
+                                                    <th
+                                                        onClick={() => handleColumnSelect(col)}
                                                         style={{
                                                             cursor: 'pointer',
                                                             backgroundColor: selectedColumns.includes(col) ? 'rgba(102, 126, 234, 0.1)' : 'inherit',
@@ -446,7 +446,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                                                 inline
                                                                 type="checkbox"
                                                                 checked={selectedColumns.includes(col)}
-                                                                onChange={() => {}}
+                                                                onChange={() => { }}
                                                             />
                                                         )}
                                                         {col}
@@ -508,9 +508,9 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                                         </div>
                                                     )}
                                                 </div>
-                                                <Button 
-                                                    variant="link" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="link"
+                                                    size="sm"
                                                     className="text-danger p-0 ms-2"
                                                     onClick={() => setSteps(steps.filter((_, idx) => idx !== i))}
                                                     title="Remove step"
@@ -541,10 +541,10 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                 <Modal.Header closeButton>
                     <Modal.Title>
                         Preprocess
-                        {selectedColumn 
-                            ? ` Column: ${selectedColumn}` 
-                            : selectedColumns.length > 0 
-                                ? ` ${selectedColumns.length} Columns` 
+                        {selectedColumn
+                            ? ` Column: ${selectedColumn}`
+                            : selectedColumns.length > 0
+                                ? ` ${selectedColumns.length} Columns`
                                 : ' Dataset'
                         }
                     </Modal.Title>
@@ -620,7 +620,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                     <tr><td><strong>Unique Values:</strong></td><td>{columnInfoData.unique}</td></tr>
                                 </tbody>
                             </Table>
-                            
+
                             {columnInfoData.type === 'Numerical' && (
                                 <div className="mt-3">
                                     <h5>Numerical Statistics</h5>
@@ -635,7 +635,7 @@ const Preprocessing = ({ originalDataset, columns, processedData, setProcessedDa
                                     </Table>
                                 </div>
                             )}
-                            
+
                             {columnInfoData.type === 'Categorical' && columnInfoData.topValues && (
                                 <div className="mt-3">
                                     <h5>Top 5 Values</h5>

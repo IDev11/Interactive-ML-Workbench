@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert, Card, Row, Col, Badge, ProgressBar } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCut, faBullseye, faChartBar, faVial } from '@fortawesome/free-solid-svg-icons';
+import { faCut, faBullseye, faChartBar, faVial, faBalanceScale, faCheckCircle, faGraduationCap } from '@fortawesome/free-solid-svg-icons';
 import { trainTestSplit } from '../services/api';
 
 const TrainTestSplit = ({ processedData, setSplitData }) => {
@@ -29,13 +29,13 @@ const TrainTestSplit = ({ processedData, setSplitData }) => {
     return (
         <div>
             <h2><FontAwesomeIcon icon={faCut} className="me-2" />Train/Test Split</h2>
-            
+
             <Card>
                 <Card.Body>
                     <Form.Group className="mb-4">
                         <Form.Label><FontAwesomeIcon icon={faBullseye} className="me-2" />Target Column</Form.Label>
-                        <Form.Select 
-                            value={target} 
+                        <Form.Select
+                            value={target}
                             onChange={e => setTarget(e.target.value)}
                             size="lg"
                         >
@@ -53,11 +53,11 @@ const TrainTestSplit = ({ processedData, setSplitData }) => {
                         <Form.Label>
                             <FontAwesomeIcon icon={faChartBar} className="me-2" />Test Size: <Badge bg="primary">{(testSize * 100).toFixed(0)}%</Badge>
                         </Form.Label>
-                        <Form.Range 
-                            min="0.1" 
-                            max="0.9" 
-                            step="0.05" 
-                            value={testSize} 
+                        <Form.Range
+                            min="0.1"
+                            max="0.9"
+                            step="0.05"
+                            value={testSize}
                             onChange={e => setTestSize(parseFloat(e.target.value))}
                         />
                         <div className="d-flex justify-content-between text-muted small">
@@ -75,7 +75,7 @@ const TrainTestSplit = ({ processedData, setSplitData }) => {
                         <Form.Check
                             type="switch"
                             id="stratify-switch"
-                            label="⚖️ Stratified Split (maintains class distribution)"
+                            label={<><FontAwesomeIcon icon={faBalanceScale} className="me-2" />Stratified Split (maintains class distribution)</>}
                             checked={stratify}
                             onChange={e => setStratify(e.target.checked)}
                             className="form-check-lg"
@@ -85,9 +85,9 @@ const TrainTestSplit = ({ processedData, setSplitData }) => {
                         </Form.Text>
                     </Form.Group>
 
-                    <Button 
-                        onClick={handleSplit} 
-                        variant="primary" 
+                    <Button
+                        onClick={handleSplit}
+                        variant="primary"
                         size="lg"
                         disabled={!target}
                     >
@@ -99,14 +99,14 @@ const TrainTestSplit = ({ processedData, setSplitData }) => {
             {splitInfo && (
                 <Card className="mt-4 success-pulse">
                     <Card.Header>
-                        <h5 className="mb-0">✅ Data Split Complete</h5>
+                        <h5 className="mb-0"><FontAwesomeIcon icon={faCheckCircle} className="me-2 text-success" /> Data Split Complete</h5>
                     </Card.Header>
                     <Card.Body>
                         <Row>
                             <Col md={6}>
                                 <Card bg="light" className="h-100">
                                     <Card.Body>
-                                        <h6>🎓 Training Set</h6>
+                                        <h6><FontAwesomeIcon icon={faGraduationCap} className="me-2" /> Training Set</h6>
                                         <div className="mt-3">
                                             <div className="mb-2">
                                                 <strong>Rows:</strong>{' '}

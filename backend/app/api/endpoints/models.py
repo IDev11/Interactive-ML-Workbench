@@ -7,6 +7,8 @@ from app.core.models.naive_bayes import NaiveBayes
 from app.core.models.c45 import C45
 from app.core.models.chaid import CHAID
 from app.core.models.knn import KNN
+from app.core.models.neural_network import NeuralNetwork
+from app.core.models.cnn import CNN
 from app.core.evaluation import calculate_metrics
 
 router = APIRouter()
@@ -42,7 +44,7 @@ async def train_model(data: Dict[str, Any] = Body(...)):
     
     Expected payload:
     {
-        "model": "naive_bayes" | "c45" | "chaid" | "knn",
+        "model": "naive_bayes" | "c45" | "chaid" | "knn" | "neural_network",
         "X_train": [...],
         "y_train": [...],
         "X_test": [...],
@@ -83,6 +85,52 @@ async def train_model(data: Dict[str, Any] = Body(...)):
                 n_neighbors=params.get('n_neighbors', 5),
                 metric=params.get('metric', 'euclidean')
             )
+        elif model_name == 'neural_network':
+            # Parse hidden_layers parameter
+            hidden_layers_param = params.get('hidden_layers', [100])
+            if isinstance(hidden_layers_param, list):
+                hidden_layers = tuple(hidden_layers_param)
+            else:
+                hidden_layers = (hidden_layers_param,)
+                
+            model = NeuralNetwork(
+                hidden_layers=hidden_layers,
+                learning_rate=params.get('learning_rate', 0.001),
+                epochs=params.get('epochs', 200),
+                activation=params.get('activation', 'relu'),
+                solver=params.get('solver', 'adam'),
+                alpha=params.get('alpha', 0.0001),
+                batch_size=params.get('batch_size', 'auto'),
+                random_state=params.get('random_state', 42)
+            )
+        elif model_name == 'cnn':
+            # Parse input_shape
+            input_shape_param = params.get('input_shape', "28,28,1")
+            try:
+                if isinstance(input_shape_param, str):
+                    input_shape = tuple(map(int, input_shape_param.split(',')))
+                else:
+                    input_shape = tuple(input_shape_param)
+            except:
+                input_shape = (28, 28, 1) # Default fallback
+            
+            # Parse filters
+            filters_param = params.get('filters', "32,64")
+            try:
+                if isinstance(filters_param, str):
+                    filters = tuple(map(int, filters_param.split(',')))
+                else:
+                    filters = tuple(filters_param)
+            except:
+                filters = (32, 64)
+                
+            model = CNN(
+                input_shape=input_shape,
+                filters=filters,
+                learning_rate=params.get('learning_rate', 0.001),
+                epochs=params.get('epochs', 10),
+                random_state=params.get('random_state', 42)
+            )
         else:
             raise HTTPException(status_code=400, detail=f"Unknown model: {model_name}")
 
@@ -111,7 +159,7 @@ async def train_model(data: Dict[str, Any] = Body(...)):
                 'tree_structure': model.visualize_tree(),
                 'description': model.summary()
             }
-        elif model_name == 'knn':
+        elif model_name in ['knn', 'neural_network', 'cnn']:
             model_info = model.get_info()
         
         # Prepare response

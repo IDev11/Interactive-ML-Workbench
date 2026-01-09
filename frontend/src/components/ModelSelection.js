@@ -1,13 +1,31 @@
 import React, { useState } from 'react';
 import { Form, Button, Spinner, Alert, Card, Row, Col, Badge } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBrain, faExclamationTriangle, faTimesCircle, faChartBar, faTree, faProjectDiagram, faRocket, faStar, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faBrain, faExclamationTriangle, faTimesCircle, faChartBar, faTree, faProjectDiagram, faRocket, faStar, faUsers, faNetworkWired } from '@fortawesome/free-solid-svg-icons';
 import { trainModel } from '../services/api';
 
 const ModelSelection = ({ splitData, setResults }) => {
     const [model, setModel] = useState('naive_bayes');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [nnParams, setNnParams] = useState({
+        hidden_layers: [100],
+        learning_rate: 0.001,
+        epochs: 200,
+        activation: 'relu',
+        solver: 'adam',
+        alpha: 0.0001
+    });
+    const [cnnParams, setCnnParams] = useState({
+        input_shape: "28,28,1",
+        filters: "32,64",
+        learning_rate: 0.001,
+        epochs: 10
+    });
+    const [knnParams, setKnnParams] = useState({
+        n_neighbors: 5,
+        metric: 'euclidean'
+    });
 
     const handleTrain = async () => {
         setLoading(true);
@@ -15,7 +33,12 @@ const ModelSelection = ({ splitData, setResults }) => {
         try {
             const payload = {
                 model: model,
-                ...splitData
+                ...splitData,
+                params: model === 'neural_network' ? nnParams : (
+                    model === 'cnn' ? cnnParams : (
+                        model === 'knn' ? knnParams : {}
+                    )
+                )
             };
             console.log('Sending payload:', payload);
             const res = await trainModel(payload);
@@ -63,13 +86,27 @@ const ModelSelection = ({ splitData, setResults }) => {
             description: 'Instance-based learning using distance between data points',
             pros: ['Simple and intuitive', 'No training phase', 'Effective with low-dimensional data'],
             color: 'warning'
+        },
+        neural_network: {
+            icon: faNetworkWired,
+            name: 'Neural Network',
+            description: 'Multi-layer perceptron using scikit-learn (MLPClassifier)',
+            pros: ['Handles complex patterns', 'Non-linear decision boundaries', 'Highly configurable'],
+            color: 'danger'
+        },
+        cnn: {
+            icon: faBrain,
+            name: 'Conv. Neural Network',
+            description: 'Convolutional Network for image data (requires flattened input)',
+            pros: ['Excellent for image recognition', 'Spatial feature extraction', 'State-of-the-art for vision'],
+            color: 'dark'
         }
     };
 
     return (
         <div>
             <h2><FontAwesomeIcon icon={faBrain} className="me-2" />Model Training</h2>
-            
+
             {error && (
                 <Alert variant="danger" dismissible onClose={() => setError(null)}>
                     <Alert.Heading><FontAwesomeIcon icon={faTimesCircle} className="me-2" />Training Error</Alert.Heading>
@@ -85,9 +122,9 @@ const ModelSelection = ({ splitData, setResults }) => {
                     <Row>
                         {Object.entries(modelInfo).map(([key, info]) => (
                             <Col md={4} key={key} className="mb-3">
-                                <Card 
+                                <Card
                                     className={`h-100 ${model === key ? 'border-' + info.color : ''}`}
-                                    style={{ 
+                                    style={{
                                         cursor: 'pointer',
                                         borderWidth: model === key ? '3px' : '1px',
                                         transform: model === key ? 'scale(1.02)' : 'scale(1)',
@@ -121,19 +158,224 @@ const ModelSelection = ({ splitData, setResults }) => {
                         ))}
                     </Row>
 
+                    {model === 'neural_network' && (
+                        <Card className="mt-4">
+                            <Card.Header>
+                                <h6 className="mb-0">Neural Network Configuration</h6>
+                            </Card.Header>
+                            <Card.Body>
+                                <Row>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Hidden Layers (comma-separated)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                value={nnParams.hidden_layers.join(',')}
+                                                onChange={(e) => setNnParams({
+                                                    ...nnParams,
+                                                    hidden_layers: e.target.value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x))
+                                                })}
+                                                placeholder="e.g., 100,50"
+                                            />
+                                            <Form.Text className="text-muted">
+                                                Number of neurons in each hidden layer. E.g., "100,50" creates 2 layers
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Learning Rate</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                step="0.0001"
+                                                value={nnParams.learning_rate}
+                                                onChange={(e) => setNnParams({ ...nnParams, learning_rate: parseFloat(e.target.value) })}
+                                            />
+                                            <Form.Text className="text-muted">
+                                                Controls how quickly the model learns (0.0001 - 0.1)
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Epochs (Iterations)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                value={nnParams.epochs}
+                                                onChange={(e) => setNnParams({ ...nnParams, epochs: parseInt(e.target.value) })}
+                                            />
+                                            <Form.Text className="text-muted">
+                                                Maximum number of training iterations
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Activation Function</Form.Label>
+                                            <Form.Select
+                                                value={nnParams.activation}
+                                                onChange={(e) => setNnParams({ ...nnParams, activation: e.target.value })}
+                                            >
+                                                <option value="relu">ReLU (Recommended)</option>
+                                                <option value="tanh">Tanh</option>
+                                                <option value="logistic">Sigmoid/Logistic</option>
+                                            </Form.Select>
+                                            <Form.Text className="text-muted">
+                                                Activation function for hidden layers
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Solver (Optimizer)</Form.Label>
+                                            <Form.Select
+                                                value={nnParams.solver}
+                                                onChange={(e) => setNnParams({ ...nnParams, solver: e.target.value })}
+                                            >
+                                                <option value="adam">Adam (Recommended)</option>
+                                                <option value="sgd">SGD (Stochastic Gradient Descent)</option>
+                                                <option value="lbfgs">L-BFGS</option>
+                                            </Form.Select>
+                                            <Form.Text className="text-muted">
+                                                Weight optimization algorithm
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Alpha (Regularization)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                step="0.0001"
+                                                value={nnParams.alpha}
+                                                onChange={(e) => setNnParams({ ...nnParams, alpha: parseFloat(e.target.value) })}
+                                            />
+                                            <Form.Text className="text-muted">
+                                                L2 penalty parameter to prevent overfitting
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
+                    )}
+
+                    {model === 'knn' && (
+                        <Card className="mt-4">
+                            <Card.Header>
+                                <h6 className="mb-0">K-Nearest Neighbors Configuration</h6>
+                            </Card.Header>
+                            <Card.Body>
+                                <Row>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Number of Neighbors (k)</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                min="1"
+                                                value={knnParams.n_neighbors}
+                                                onChange={(e) => setKnnParams({ ...knnParams, n_neighbors: parseInt(e.target.value) || 1 })}
+                                            />
+                                            <Form.Text className="text-muted">
+                                                Number of neighbors to decide the class (usually odd)
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Distance Metric</Form.Label>
+                                            <Form.Select
+                                                value={knnParams.metric}
+                                                onChange={(e) => setKnnParams({ ...knnParams, metric: e.target.value })}
+                                            >
+                                                <option value="euclidean">Euclidean (Standard)</option>
+                                                <option value="manhattan">Manhattan (City Block)</option>
+                                                <option value="minkowski">Minkowski</option>
+                                            </Form.Select>
+                                            <Form.Text className="text-muted">
+                                                Method to calculate distance between points
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
+                    )}
+
+                    {model === 'cnn' && (
+                        <Card className="mt-4">
+                            <Card.Header>
+                                <h6 className="mb-0">CNN Configuration</h6>
+                            </Card.Header>
+                            <Card.Body>
+                                <Row>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Input Shape (H,W,C)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                value={cnnParams.input_shape}
+                                                onChange={(e) => setCnnParams({ ...cnnParams, input_shape: e.target.value })}
+                                                placeholder="e.g., 28,28,1"
+                                            />
+                                            <Form.Text className="text-muted">
+                                                Height, Width, Channels (e.g. 28,28,1 for MNIST)
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Filters (comma-separated)</Form.Label>
+                                            <Form.Control
+                                                type="text"
+                                                value={cnnParams.filters}
+                                                onChange={(e) => setCnnParams({ ...cnnParams, filters: e.target.value })}
+                                                placeholder="e.g., 32,64"
+                                            />
+                                            <Form.Text className="text-muted">
+                                                Filters per Conv layer
+                                            </Form.Text>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Learning Rate</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                step="0.0001"
+                                                value={cnnParams.learning_rate}
+                                                onChange={(e) => setCnnParams({ ...cnnParams, learning_rate: parseFloat(e.target.value) })}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={6}>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label>Epochs</Form.Label>
+                                            <Form.Control
+                                                type="number"
+                                                value={cnnParams.epochs}
+                                                onChange={(e) => setCnnParams({ ...cnnParams, epochs: parseInt(e.target.value) })}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
+                    )}
+
                     <div className="text-center mt-4">
-                        <Button 
-                            onClick={handleTrain} 
-                            disabled={loading} 
+                        <Button
+                            onClick={handleTrain}
+                            disabled={loading}
                             variant={modelInfo[model].color}
                             size="lg"
                         >
                             {loading ? (
                                 <>
-                                    <Spinner 
-                                        as="span" 
-                                        animation="border" 
-                                        size="sm" 
+                                    <Spinner
+                                        as="span"
+                                        animation="border"
+                                        size="sm"
                                         className="me-2"
                                     />
                                     Training {modelInfo[model].name}...

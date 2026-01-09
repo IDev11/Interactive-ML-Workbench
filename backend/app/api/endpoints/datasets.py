@@ -44,8 +44,8 @@ async def upload_dataset(file: UploadFile = File(...)):
             if attr_type == 'NUMERIC' or attr_type == 'REAL':
                 df[attr_name] = pd.to_numeric(df[attr_name], errors='coerce')
     else:
-        # Parse CSV file
-        df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
+        # Parse CSV file using BytesIO to avoid intermediate string decoding
+        df = pd.read_csv(io.BytesIO(contents))
     
     # Detect column types
     numerical_cols = df.select_dtypes(include=['number']).columns.tolist()

@@ -2,6 +2,8 @@ fastapi
 pandas
 numpy
 scipy
+scikit-learn
 python-multipart
 uvicorn
 liac-arff
+tensorflow
