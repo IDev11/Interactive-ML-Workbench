@@ -5,16 +5,22 @@ An interactive web-based platform for machine learning experimentation, featurin
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![React](https://img.shields.io/badge/react-18.0+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.0+-orange.svg)
+
+![Dashboard](assets/dashboard.png)
 
 ## ✨ Features
 
-### 🤖 ML Algorithms (Implemented from Scratch)
+### 🤖 ML Algorithms (Implemented from Scratch & TensorFlow)
 - **Naive Bayes** - Probabilistic classifier with Gaussian and categorical support
 - **C4.5 Decision Tree** - Information gain ratio with pruning
 - **CHAID** - Chi-square Automatic Interaction Detection with category merging
-- **K-Nearest Neighbors** - Instance-based learning with multiple distance metrics
+- **K-Nearest Neighbors** - Instance-based learning with configurable 'k' and distance metrics (Euclidean, Manhattan, Minkowski)
+- **Neural Network** - Multi-layer Perceptron (MLP) powered by TensorFlow/Keras
+- **Convolutional Neural Network (CNN)** - Deep learning model for image classification (e.g., MNIST)
 
 ### 📊 Data Preprocessing
+![Preprocessing Pipeline](assets/preprocessing.png)
 - **Missing value handling** - Mean, median, mode, forward fill, drop, custom values
 - **Categorical encoding** - One-hot encoding, label encoding
 - **Feature scaling** - Min-max normalization, Z-score standardization
@@ -39,9 +45,9 @@ An interactive web-based platform for machine learning experimentation, featurin
 
 ### 🔧 Additional Features
 - **Train/Test split** - With optional stratification
-- **Dataset upload** - CSV file support
+- **Dataset upload** - CSV file support (up to 500MB+ with streaming upload)
 - **Preview and statistics** - Dataset overview with column stats
-- **Clean UI** - Modern, minimal design
+- **Clean UI** - Modern "Research Lab" design with FontAwesome icons
 - **Responsive layout** - Works on different screen sizes
 
 ## 🚀 Getting Started
@@ -94,6 +100,7 @@ npm start
 
 ```
 ml-experimentation-lab/
+├── assets/                 # Project screenshots
 ├── backend/
 │   ├── app/
 │   │   ├── api/
@@ -107,7 +114,9 @@ ml-experimentation-lab/
 │   │   │   │   ├── naive_bayes.py
 │   │   │   │   ├── c45.py
 │   │   │   │   ├── chaid.py
-│   │   │   │   └── knn.py
+│   │   │   │   ├── knn.py
+│   │   │   │   ├── neural_network.py (TensorFlow)
+│   │   │   │   └── cnn.py (TensorFlow)
 │   │   │   ├── preprocessing.py
 │   │   │   └── evaluation.py
 │   │   └── main.py
@@ -140,6 +149,7 @@ ml-experimentation-lab/
 
 ### Backend
 - **FastAPI** - Modern Python web framework
+- **TensorFlow/Keras** - Deep Learning framework
 - **NumPy & Pandas** - Data manipulation and numerical computing
 - **SciPy** - Statistical functions (chi-square tests)
 
